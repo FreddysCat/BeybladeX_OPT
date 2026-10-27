@@ -1,0 +1,2243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organized Play Tool - Beyblade X</title>
+    <style>
+        :root {
+            --bg-light: #f4f5f7;
+            --card-bg: rgba(20, 24, 33, 0.92);
+            --border-color: #334155;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-cyan: #0284c7;
+            --accent-orange: #b45309;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('peakpx.jpg') center/cover fixed no-repeat;
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.55);
+            z-index: -1;
+        }
+
+        .app-title-header, .container {
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .app-title-header {
+            text-align: center;
+            margin-bottom: 12px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-top: 4px solid var(--accent-cyan);
+            border-radius: 10px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .header-logo-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 4px;
+            max-width: 100%;
+        }
+
+        .app-title-header img.main-logo {
+            max-height: 34px;
+            width: auto;
+            display: block;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+        }
+
+        .app-title-header img.shark-logo {
+            max-height: 28px;
+            width: auto;
+            display: block;
+            border-radius: 50%;
+            border: 2px solid var(--accent-cyan);
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+        }
+
+        .app-title-text {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-size: 1.05rem;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.8), 0 0 10px var(--accent-cyan);
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .beyblade-audio-card {
+            background: var(--card-bg);
+            background-image: url('Pic1.jpeg');
+            background-blend-mode: overlay;
+            background-size: cover;
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--accent-orange);
+            border-radius: 10px;
+            padding: 12px 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-sizing: border-box;
+        }
+
+        .beyblade-audio-card h3 {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--accent-orange);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .beyblade-audio-card audio {
+            width: 100%;
+            height: 36px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            background-image: url('Pic1.jpeg');
+            background-blend-mode: overlay;
+            background-size: cover;
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--accent-cyan);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+        }
+
+        .card.factory-card {
+            border-top-color: #64748b;
+            background: linear-gradient(135deg, rgba(20,24,33,0.95), rgba(30,41,59,0.9));
+            background-image: url('Pic2.jpeg');
+            background-blend-mode: overlay;
+            background-size: cover;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-setup-row, .setup-box, .deck-item-box, .stats-box, .player-box, .bracket-match, .bye-selection-box, .profile-card-item, .league-match-item {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .player-setup-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .player-setup-row input, .setup-box select, .setup-box input, .modal-select-group select, .modal-select-group input {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: var(--text);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .player-setup-row input { flex: 2; }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #1e293b;
+            color: #f1f5f9;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+        }
+
+        button:hover { 
+            background: #334155; 
+            border-color: #64748b;
+        }
+
+        .btn-green, .btn-start-match-setup, .btn-modal-start, .btn-confirm-yes, .btn-save-report-manual, .btn-play-bracket, .btn-sound {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0369a1;
+        }
+        .btn-green:hover, .btn-start-match-setup:hover, .btn-modal-start:hover, .btn-confirm-yes:hover, .btn-save-report-manual:hover, .btn-play-bracket:hover, .btn-sound:hover {
+            background: #0369a1;
+            border-color: #075985;
+        }
+
+        .btn-blue, .btn-toggle-bracket, .btn-add-player, .btn-save-local {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #38bdf8;
+        }
+        .btn-blue:hover, .btn-toggle-bracket:hover, .btn-add-player:hover, .btn-save-local:hover {
+            background: #0369a1;
+            border-color: #0284c7;
+        }
+
+        .btn-red, .btn-remove-player, .btn-cancel-match, .btn-modal-cancel, .btn-confirm-no, .btn-cancel-tournament, .btn-clear-log, .btn-factory-reset {
+            background: #1e293b;
+            color: #ef4444;
+            border-color: #475569;
+        }
+        .btn-red:hover, .btn-remove-player:hover, .btn-cancel-match:hover, .btn-modal-cancel:hover, .btn-confirm-no:hover, .btn-cancel-tournament:hover, .btn-clear-log:hover {
+            background: #7f1d1d;
+            border-color: #fca5a5;
+            color: #fff;
+        }
+
+        .btn-factory-reset {
+            width: 100%;
+            padding: 10px;
+            font-size: 0.85rem;
+            color: #fca5a5;
+            background: #7f1d1d;
+            border-color: #f87171;
+        }
+        .btn-factory-reset:hover {
+            background: #991b1b;
+            color: #ffffff;
+            border-color: #ef4444;
+        }
+
+        .btn-deck-config {
+            background: #1e293b;
+            color: var(--text);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            color: #fbbf24;
+        }
+
+        .btn-rematch {
+            background: #78350f;
+            color: #fde68a;
+            border: 1px solid #d97706;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-cancel-match {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+
+        .setup-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .setup-box {
+            flex: 1;
+        }
+
+        .setup-box label, .modal-select-group label, .bye-selection-box h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .bye-selection-box h4 { color: var(--accent-orange); margin: 0 0 6px 0; }
+
+        .btn-start-match-setup, .btn-toggle-bracket {
+            width: 100%;
+            margin-top: 5px;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+        .btn-toggle-bracket { margin-bottom: 10px; }
+        .btn-sound { width: 100%; padding: 10px; font-size: 0.85rem; }
+
+        .scoreboards { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .player-box { flex: 1; min-width: 120px; text-align: center; }
+        .player-box h3 { margin: 0 0 4px 0; font-size: 0.9rem; color: #fbbf24; }
+        
+        .player-box .sets-display {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin-bottom: 4px;
+        }
+
+        .player-box .blade-sub {
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: bold;
+        }
+
+        .score {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 8px;
+        }
+
+        .score-actions { display: flex; flex-direction: column; gap: 5px; }
+
+        .btn-rule {
+            background-color: #0f172a;
+            color: var(--text);
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-rule span {
+            background: #1e293b;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            color: #fbbf24;
+        }
+
+        .btn-rule.spin { border-left: 3px solid var(--accent-cyan); }
+        .btn-rule.burst { border-left: 3px solid #f97316; }
+        .btn-rule.over { border-left: 3px solid #c2410c; }
+        .btn-rule.xtreme { border-left: 3px solid var(--accent-red); }
+        .btn-rule.disq { border-left: 3px solid #6b7280; background-color: #450a0a; color: #fca5a5; }
+
+        .report-log {
+            font-size: 0.8rem;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            max-height: 180px;
+            overflow-y: auto;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 10px;
+            background: #0f172a;
+        }
+
+        .report-log p { margin: 0 0 10px 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; color: var(--text); }
+
+        .stats-box {
+            font-size: 0.8rem;
+            margin-top: 10px;
+            color: var(--text-muted);
+            border-left: 3px solid var(--accent-yellow);
+        }
+
+        .stats-box h4 {
+            margin: 0 0 6px 0;
+            color: #fbbf24;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-group { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-action { flex: 1; padding: 9px; font-size: 0.8rem; }
+        
+        .btn-clear-log {
+            width: 100%;
+            margin-top: 6px;
+            padding: 7px;
+            font-size: 0.75rem;
+        }
+
+        .collapse-toggle-btn {
+            background: #334155;
+            color: var(--text);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            font-size: 0.7rem;
+            font-weight: normal;
+            float: right;
+        }
+
+        #winner-banner {
+            display: none;
+            background: linear-gradient(135deg, #78350f, #7f1d1d);
+            border: 1px solid #d97706;
+            text-align: center;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        #winner-text { font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px; color: #fde68a; }
+        .winner-btn-group { display: flex; gap: 8px; justify-content: center; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        @keyframes beybladeLightning {
+            0% { box-shadow: 0 0 15px var(--accent-cyan), 0 0 30px var(--accent-yellow), inset 0 0 15px rgba(2, 132, 199, 0.5); border-color: var(--accent-cyan); }
+            33% { box-shadow: 0 0 25px var(--accent-red), 0 0 50px var(--accent-yellow), inset 0 0 25px rgba(239, 68, 68, 0.5); border-color: var(--accent-red); }
+            66% { box-shadow: 0 0 20px var(--accent-yellow), 0 0 40px var(--accent-cyan), inset 0 0 20px rgba(245, 158, 11, 0.5); border-color: var(--accent-yellow); }
+            100% { box-shadow: 0 0 15px var(--accent-cyan), 0 0 30px var(--accent-yellow), inset 0 0 15px rgba(2, 132, 199, 0.5); border-color: var(--accent-cyan); }
+        }
+
+        .modal-card {
+            background: #0f172a;
+            background-image: url('Pic2.jpeg');
+            background-blend-mode: overlay;
+            background-size: cover;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .welcome-modal-card {
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            background-image: url('Pic1.jpeg');
+            background-blend-mode: overlay;
+            background-size: cover;
+            border: 3px solid var(--accent-cyan);
+            color: #ffffff;
+            animation: beybladeLightning 2s infinite ease-in-out;
+        }
+
+        .welcome-modal-card h2 {
+            color: var(--accent-yellow);
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .welcome-modal-card .confirm-msg {
+            color: #e2e8f0;
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        @keyframes spinPhoenix {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(360deg) scale(1.15); }
+            100% { transform: rotate(720deg) scale(1); }
+        }
+
+        .rotating-phoenix {
+            animation: spinPhoenix 0.7s ease-in-out forwards;
+        }
+
+        .btn-phoenix-start {
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: filter 0.2s ease;
+            display: inline-block;
+            margin: 10px auto;
+        }
+
+        .btn-phoenix-start img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid var(--accent-yellow);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
+            display: block;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-phoenix-start:hover img {
+            transform: scale(1.08);
+            filter: brightness(1.2);
+        }
+
+        .modal-card h2 {
+            color: #fbbf24;
+            text-transform: uppercase;
+            margin-top: 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .deck-item-box { text-align: left; margin-bottom: 10px; }
+        .deck-item-box h4 { margin: 0 0 6px 0; color: var(--accent-cyan); font-size: 0.85rem; }
+        .modal-select-group { margin-bottom: 6px; text-align: left; }
+        .modal-btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-btn-row button { flex: 1; padding: 10px; font-size: 0.9rem; }
+
+        .confirm-msg {
+            font-size: 0.9rem;
+            color: var(--text);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .match-active-only { display: none; }
+        
+        .bracket-container { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .bracket-round-box { background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; }
+        .bracket-round-title { font-size: 0.75rem; font-weight: bold; color: var(--accent-orange); text-transform: uppercase; margin-bottom: 6px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; }
+        .bracket-match { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; margin-bottom: 6px; background: #0f172a; border: 1px solid var(--border-color); border-radius: 4px; }
+        .bracket-match:last-child { margin-bottom: 0; }
+        .bracket-match-info { font-size: 0.8rem; font-weight: 600; }
+        .btn-play-bracket { padding: 4px 8px; font-size: 0.7rem; }
+
+        .bye-selection-box { margin-bottom: 10px; text-align: left; }
+        .bye-checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+        .bye-checkbox-row input { cursor: pointer; }
+        
+        /* Liga-spezifisches Styling */
+        .league-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            background: #0f172a;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .league-table th, .league-table td {
+            padding: 6px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .league-table th {
+            background: #1e293b;
+            color: var(--accent-cyan);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .league-table td:nth-child(2) {
+            text-align: left;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .league-match-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            background: #0f172a;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .league-player-select-list {
+            max-height: 180px;
+            overflow-y: auto;
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+            box-sizing: border-box;
+        }
+
+        .league-player-select-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text);
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .league-player-select-item:hover {
+            background: #1e293b;
+        }
+
+        .league-player-select-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--accent-cyan);
+        }
+
+        .app-hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="matchAudio" src="udio.mp3" preload="auto"></audio>
+
+    <div id="modal-welcome" class="modal-overlay">
+        <div class="modal-card welcome-modal-card">
+            <h2>⚡ Beyblade X ⚡</h2>
+            <div class="confirm-msg">Bist du ready? Klicke auf den Phoenix, um zu starten!</div>
+            <button class="btn-phoenix-start" id="phoenixBtn" onclick="handleLetItRipChoice()" title="Let it rip!">
+                <img src="AVATAR FENIX BEYBLADE X.jpeg" alt="Phoenix Start Button" id="phoenixImg">
+            </button>
+            <div style="margin-top: 10px;">
+                <button class="btn-confirm-no" onclick="handleLameChoice()" style="background:#1e293b; color:#f8fafc; border-color:#475569; padding: 8px 16px; font-size: 0.8rem;">Nee, ich bin lame!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liga Erstellungs-Modal -->
+    <div id="modal-create-league" class="modal-overlay">
+        <div class="modal-card" style="max-width: 440px;">
+            <h2>Neue Liga Erstellen</h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Erstelle eine Liga mit Spieltagen (Jeder-gegen-Jeden).</div>
+            <div class="modal-select-group">
+                <label>Name der Liga:</label>
+                <input type="text" id="leagueNameInput" value="Beyblade X Championship">
+            </div>
+            <div class="modal-select-group" style="margin-top: 10px;">
+                <label>Teilnehmende Spieler wählen:</label>
+                <div id="leaguePlayerCheckboxes" class="league-player-select-list"></div>
+            </div>
+            <div class="modal-btn-row">
+                <button class="btn-modal-cancel" onclick="closeCreateLeagueModal()">Abbrechen</button>
+                <button class="btn-modal-start btn-green" onclick="confirmCreateLeague()">Liga Starten</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-deck" class="modal-overlay">
+        <div class="modal-card">
+            <h2 id="deckModalTitle">Profil & Deck bearbeiten</h2>
+            <div class="deck-item-box" style="margin-bottom: 12px;">
+                <h4>Spieler-Details</h4>
+                <div class="modal-select-group"><label>Spitzname:</label><input type="text" id="inputNickname" placeholder="z.B. StormRider"></div>
+                <div class="modal-select-group"><label>Geburtsdatum:</label><input type="date" id="inputBirthdate"></div>
+                <div class="modal-select-group"><label>Individueller Spruch:</label><input type="text" id="inputMotto" placeholder="z.B. Xtreme Finish ist Pflicht!"></div>
+            </div>
+            <div id="deckContainer"></div>
+            <div class="modal-btn-row">
+                <button class="btn-modal-cancel" onclick="closeDeckModal()">Abbrechen</button>
+                <button class="btn-modal-start" onclick="savePlayerDeck()">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-profiles" class="modal-overlay">
+        <div class="modal-card" style="max-width: 480px;">
+            <h2>Spielerprofile & Win/Loss Statistiken</h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">Übersicht aller Profile, Win/Loss und Export/Import-Optionen.</div>
+            <div id="profilesStatsContainer" style="max-height: 52vh; overflow-y: auto; text-align: left; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
+            <div class="modal-btn-row" style="flex-wrap: wrap;">
+                <button class="btn-modal-start btn-blue" onclick="exportProfilesFile()">Speichern unter...</button>
+                <button class="btn-modal-start btn-green" onclick="document.getElementById('importProfilesInput').click()">Profile laden...</button>
+                <input type="file" id="importProfilesInput" style="display:none;" accept=".json" onchange="importProfilesFile(event)">
+                <button class="btn-modal-cancel" onclick="closeProfilesModal()">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-blade" class="modal-overlay">
+        <div class="modal-card">
+            <h2 id="modalTitle">Wähle deine Combo</h2>
+            <div class="modal-select-group"><label>Spieler 1 Aktive Combo:</label><select id="selectBlade1"></select></div>
+            <div class="modal-select-group"><label>Spieler 2 Aktive Combo:</label><select id="selectBlade2"></select></div>
+            <div class="modal-select-group" id="groupBlade3" style="display:none;"><label>Spieler 3 Aktive Combo:</label><select id="selectBlade3"></select></div>
+            <div class="modal-btn-row">
+                <button class="btn-modal-cancel" onclick="cancelBladeModal()">Abbrechen</button>
+                <button class="btn-modal-start" onclick="confirmBladeSelection()">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-confirm" class="modal-overlay">
+        <div class="modal-card">
+            <h2>Finish bestätigen</h2>
+            <div class="confirm-msg" id="confirmMsg">Soll dieses Finish gewertet werden?</div>
+            <div class="modal-btn-row">
+                <button class="btn-confirm-no" onclick="closeConfirmModal()">Abbrechen</button>
+                <button class="btn-confirm-yes" onclick="executeConfirmedScore()">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainAppContent" class="app-hidden">
+        <div class="app-title-header">
+            <div class="header-logo-row">
+                <img src="Shark Edge Gear Chip Designs.jpeg" alt="Shark Edge Logo" class="shark-logo">
+                <img src="Beyblade_X_Logo.svg" alt="Organized Play Tool Logo" class="main-logo">
+            </div>
+            <h1 class="app-title-text">Organized Play Tool</h1>
+        </div>
+
+        <div class="container">
+            <div class="beyblade-audio-card">
+                <h3><span>Match-Soundtrack</span></h3>
+                <audio controls>
+                    <source src="Audio.mp3" type="audio/mpeg">
+                    Dein Browser unterstützt das Audio-Element nicht.
+                </audio>
+            </div>
+
+            <div id="winner-banner">
+                <div id="winner-text">Spieler gewinnt das Match! 🏆</div>
+                <div class="winner-btn-group">
+                    <button class="btn-save-report-manual" onclick="saveCurrentMatchToReport()">In Bericht speichern</button>
+                    <button class="btn-rematch" onclick="quickRematch()">Revanche</button>
+                </div>
+            </div>
+
+            <div class="card" id="playersCard">
+                <h2>Spielerprofile & Decks verwalten</h2>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">Namen anpassen, Profile erweitern und Decks konfigurieren (permanent gespeichert)</div>
+                <div id="playersListContainer"></div>
+                <button class="btn-add-player" onclick="addNewPlayerInput()" style="margin-bottom: 6px;">+ Spielerprofil hinzufügen</button>
+                <div class="btn-group" style="margin-top: 0;">
+                    <button class="btn-action btn-blue" onclick="openProfilesModal()">Profile & Win/Loss 📊</button>
+                    <button class="btn-action btn-save-local" onclick="savePlayerListTxt()">Als .txt speichern</button>
+                </div>
+            </div>
+
+            <div class="card" id="setupCard">
+                <h2>Match-Einstellungen</h2>
+                
+                <div class="setup-row" style="margin-top: 5px;">
+                    <div class="setup-box">
+                        <label>Spielmodus</label>
+                        <select id="gameModeSelect" onchange="toggleGameMode()">
+                            <option value="single">Einzelpunktespiel (Freies Match)</option>
+                            <option value="tournament">Turniermodus (KO-Bracket)</option>
+                            <option value="league">Liga-Modus (Spieltage & Tabelle)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setup-row" style="margin-bottom: 10px;">
+                    <div class="setup-box" style="width: 100%;">
+                        <label>Auswahl Arena</label>
+                        <select id="arenaSelect" onchange="checkArenaMultiplayerOption()">
+                            <option value="Xtreme Beystadium (BX-10 / Standard)">Xtreme Beystadium (BX-10 / Standard)</option>
+                            <option value="Wide Xtreme Beystadium (BX-32)">Wide Xtreme Beystadium (BX-32)</option>
+                            <option value="Double Xtreme Beystadium (BX-37)">Double Xtreme Beystadium (BX-37)</option>
+                            <option value="Infinity Beystadium (BX-46)">Infinity Beystadium (BX-46)</option>
+                            <option value="Drop Attack Beystadium (Hasbro)">Drop Attack Beystadium (Hasbro)</option>
+                            <option value="Custom / Sonstige Arena">Custom / Sonstige Arena</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setup-row" id="multiplayerModeRow" style="margin-bottom: 10px; display: none;">
+                    <div class="setup-box" style="display: flex; align-items: center; justify-content: space-between; background: rgba(30, 58, 138, 0.6); border-color: #3b82f6;">
+                        <label style="margin: 0; cursor: pointer; color: #93c5fd;" for="isMultiplayerMatch">1vs1vs1 Modus (3 Spieler)</label>
+                        <input type="checkbox" id="isMultiplayerMatch" style="width: auto; cursor: pointer; transform: scale(1.2);" onchange="toggleMultiplayerSetup()">
+                    </div>
+                </div>
+
+                <div id="singleMatchSetup">
+                    <div class="setup-row">
+                        <div class="setup-box"><label>Spieler 1</label><select id="matchPlayer1"></select></div>
+                        <div class="setup-box"><label>Spieler 2</label><select id="matchPlayer2"></select></div>
+                        <div class="setup-box" id="player3SetupCol" style="display: none;"><label>Spieler 3</label><select id="matchPlayer3"></select></div>
+                    </div>
+                    <div class="setup-row">
+                        <div class="setup-box">
+                            <label>Wertung / Format</label>
+                            <select id="matchFormatType" onchange="updateMatchFormatSelection()">
+                                <option value="single_game">Einzelwertung (1 Satz)</option>
+                                <option value="bo3">Best of 3 (2 Sätze zum Sieg)</option>
+                                <option value="bo5" selected>Best of 5 (3 Sätze zum Sieg)</option>
+                                <option value="bo7">Best of 7 (4 Sätze zum Sieg)</option>
+                            </select>
+                        </div>
+                        <div class="setup-box">
+                            <label>Zielpunkte pro Satz</label>
+                            <input type="number" id="targetScore" value="4" min="1" max="20" oninput="updateMatchFormatSelection()">
+                        </div>
+                    </div>
+                    <button class="btn-start-match-setup" onclick="startNewMatch()">Match Starten</button>
+                </div>
+
+                <div id="tournamentSetup" style="display: none;">
+                    <div class="setup-row">
+                        <div class="setup-box">
+                            <label>Turnier Wertung/Format</label>
+                            <select id="tournamentMatchFormat" onchange="updateMatchFormatSelection()">
+                                <option value="single_game">Einzelwertung (1 Satz)</option>
+                                <option value="bo3">Best of 3 (2 Sätze zum Sieg)</option>
+                                <option value="bo5" selected>Best of 5 (3 Sätze zum Sieg)</option>
+                                <option value="bo7">Best of 7 (4 Sätze zum Sieg)</option>
+                            </select>
+                        </div>
+                        <div class="setup-box">
+                            <label>Zielpunkte pro Satz</label>
+                            <input type="number" id="tournamentTargetScore" value="4" min="1" max="20" oninput="updateMatchFormatSelection()">
+                        </div>
+                    </div>
+                    
+                    <div class="bye-selection-box" id="byeSelectionContainer">
+                        <h4>Freilose für Runde 1 festlegen</h4>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">Wähle Spieler aus, die ein Freilos erhalten sollen:</div>
+                        <div id="byeCheckboxesList"></div>
+                    </div>
+
+                    <div id="tournamentControls">
+                        <button class="btn-start-match-setup btn-green" onclick="generateTournamentBracket()">Turnierbaum generieren</button>
+                    </div>
+                    <div id="tournamentActiveControls" style="display: none; margin-top: 5px;">
+                        <button class="btn-toggle-bracket" onclick="toggleBracketVisibility()" id="btnToggleBracketText">Turnierbaum verbergen</button>
+                        <button class="btn-cancel-tournament btn-red" style="width: 100%;" onclick="cancelActiveTournament()">Turnier abbrechen</button>
+                    </div>
+                    <div id="tournamentBracketContainer"></div>
+                </div>
+
+                <!-- Liga UI-Bereich -->
+                <div id="leagueSetup" style="display: none;">
+                    <div id="leagueControls">
+                        <div class="btn-group" style="margin-top: 0;">
+                            <button class="btn-action btn-green" onclick="openCreateLeagueModal()">+ Neue Liga</button>
+                            <button class="btn-action btn-blue" onclick="document.getElementById('importLeagueInput').click()">Liga Laden</button>
+                            <input type="file" id="importLeagueInput" style="display:none;" accept=".json" onchange="importLeagueFile(event)">
+                        </div>
+                    </div>
+
+                    <div id="activeLeagueContainer" style="display: none; margin-top: 12px;">
+                        <div class="setup-row">
+                            <div class="setup-box">
+                                <label>Liga Wertung/Format</label>
+                                <select id="leagueMatchFormat" onchange="updateMatchFormatSelection()">
+                                    <option value="single_game">Einzelwertung (1 Satz)</option>
+                                    <option value="bo3">Best of 3 (2 Sätze zum Sieg)</option>
+                                    <option value="bo5" selected>Best of 5 (3 Sätze zum Sieg)</option>
+                                    <option value="bo7">Best of 7 (4 Sätze zum Sieg)</option>
+                                </select>
+                            </div>
+                            <div class="setup-box">
+                                <label>Zielpunkte pro Satz</label>
+                                <input type="number" id="leagueTargetScore" value="4" min="1" max="20" oninput="updateMatchFormatSelection()">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                            <button class="btn-action btn-save-local" onclick="exportLeagueFile()">Liga Speichern unter...</button>
+                            <button class="btn-action btn-red" onclick="cancelActiveLeague()">Liga Beenden</button>
+                        </div>
+
+                        <div class="stats-box" style="margin-bottom: 12px; border-left-color: var(--accent-cyan);">
+                            <h4 id="activeLeagueTitle">Tabelle</h4>
+                            <div id="leagueTableContainer"></div>
+                        </div>
+
+                        <div class="setup-box">
+                            <label>Spieltage & Matches</label>
+                            <select id="leagueDaySelect" onchange="renderLeagueMatches()" style="margin-bottom: 8px;"></select>
+                            <div id="leagueMatchesList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card match-active-only">
+                <h2>
+                    <span>Punktezähler</span>
+                    <button class="btn-cancel-match btn-red" onclick="cancelActiveMatch()">Match abbrechen</button>
+                </h2>
+                <div id="targetLabel" style="font-size: 0.8rem; color: #fbbf24; font-weight: bold; margin-bottom: 4px; text-align: center;">Ziel: 4 Punkte</div>
+                <div id="scoreboardArenaDisplay" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px; text-align: center;">🏟️ Arena: -</div>
+                
+                <div class="scoreboards">
+                    <div class="player-box">
+                        <h3 id="labelName1">Spieler 1</h3>
+                        <div class="sets-display" id="sets1Display" style="display:none;">Sätze: 0</div>
+                        <div class="blade-sub" id="labelBlade1">- Combo wählen -</div>
+                        <div class="score" id="score1">0</div>
+                        <div class="score-actions">
+                            <button class="btn-rule spin" onclick="requestScore(1, 1, 'Spin Finish')">Spin Finish <span>1</span></button>
+                            <button class="btn-rule burst" onclick="requestScore(1, 2, 'Burst Finish')">Burst Finish <span>2</span></button>
+                            <button class="btn-rule over" onclick="requestScore(1, 2, 'Over Finish')">Over Finish <span>2</span></button>
+                            <button class="btn-rule xtreme" onclick="requestScore(1, 3, 'Xtreme Finish')">Xtreme Finish <span>3</span></button>
+                            <button class="btn-rule disq" onclick="requestDisqualification(1)">Disqualifikation <span>X</span></button>
+                        </div>
+                    </div>
+                    <div class="player-box">
+                        <h3 id="labelName2">Spieler 2</h3>
+                        <div class="sets-display" id="sets2Display" style="display:none;">Sätze: 0</div>
+                        <div class="blade-sub" id="labelBlade2">- Combo wählen -</div>
+                        <div class="score" id="score2">0</div>
+                        <div class="score-actions">
+                            <button class="btn-rule spin" onclick="requestScore(2, 1, 'Spin Finish')">Spin Finish <span>1</span></button>
+                            <button class="btn-rule burst" onclick="requestScore(2, 2, 'Burst Finish')">Burst Finish <span>2</span></button>
+                            <button class="btn-rule over" onclick="requestScore(2, 2, 'Over Finish')">Over Finish <span>2</span></button>
+                            <button class="btn-rule xtreme" onclick="requestScore(2, 3, 'Xtreme Finish')">Xtreme Finish <span>3</span></button>
+                            <button class="btn-rule disq" onclick="requestDisqualification(2)">Disqualifikation <span>X</span></button>
+                        </div>
+                    </div>
+                    <div class="player-box" id="player3Box" style="display: none;">
+                        <h3 id="labelName3">Spieler 3</h3>
+                        <div class="sets-display" id="sets3Display" style="display:none;">Sätze: 0</div>
+                        <div class="blade-sub" id="labelBlade3">- Combo wählen -</div>
+                        <div class="score" id="score3">0</div>
+                        <div class="score-actions">
+                            <button class="btn-rule spin" onclick="requestScore(3, 1, 'Spin Finish')">Spin Finish <span>1</span></button>
+                            <button class="btn-rule burst" onclick="requestScore(3, 2, 'Burst Finish')">Burst Finish <span>2</span></button>
+                            <button class="btn-rule over" onclick="requestScore(3, 2, 'Over Finish')">Over Finish <span>2</span></button>
+                            <button class="btn-rule xtreme" onclick="requestScore(3, 3, 'Xtreme Finish')">Xtreme Finish <span>3</span></button>
+                            <button class="btn-rule disq" onclick="requestDisqualification(3)">Disqualifikation <span>X</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <span>Organized Play Tool - Logfenster</span>
+                    <button class="collapse-toggle-btn" onclick="toggleSection('reportContentBody', this)">Ausblenden</button>
+                </h2>
+                <div id="reportContentBody">
+                    <div class="report-log" id="reportLog"><p style="color: var(--text-muted); font-style: italic;">Noch keine Spiele gespeichert.</p></div>
+                    <div class="btn-group">
+                        <button class="btn-action btn-save-local" onclick="exportReports()">Exportieren</button>
+                        <button class="btn-action btn-save-local" onclick="saveTagesspielberichtTxt()">Als .txt speichern</button>
+                    </div>
+                    <button class="btn-clear-log" onclick="clearReports()">Berichte leeren</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <span>Statistik</span>
+                    <button class="collapse-toggle-btn" onclick="toggleSection('statsContentBody', this)">Ausblenden</button>
+                </h2>
+                <div id="statsContentBody">
+                    <div class="stats-box" id="statsBox" style="margin-top:0;">
+                        <h4>Aktuelle Statistik</h4>
+                        <div id="statsContent">Noch keine Runden gespielt.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card factory-card">
+                <h2>System-Reset</h2>
+                <button class="btn-factory-reset" onclick="triggerFactoryReset()">Auf Werkseinstellungen zurücksetzen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dbBlades = ["Cerberus (Flame/Dark)", "DranBrave", "WizardArc", "PerseusDark", "Bahamut Blitz", "Knight Fortress", "Ragna Rage", "Unicorn Delta", "Samurai Saber", "Tyranno Beat", "Flame Cerberus", "SolEclipse", "Dran Sword", "Wizard Rod", "Phoenix Wing", "Shark Edge", "Hell's Scythe", "Cobalt Dragoon", "Dran Buster", "Unicorn Sting", "Knight Shield", "Viper Tail", "Hell's Chain", "Wizard Arrow", "Leon Claw", "Sphinx Cowl", "Silver Wolf", "Black Shell", "Chain Incendio", "Buster Dawn", "Cobalt Drake", "Hells Hammer", "Crimson Garuda", "Mammoth Tusk", "Whale Wave", "Leon Crest", "Wizard Rod UX", "Dran Buster UX", "Phoenix Wing UX", "Samurai Sword UX"];
+        const dbRatchets = ["1-50", "1-60", "3-50", "3-60", "3-70", "3-80", "4-50", "4-55", "4-60", "4-70", "4-80", "5-50", "5-60", "5-70", "5-80", "6-60", "6-80", "7-60", "7-70", "7-80", "8-70", "8-80", "9-60", "9-70", "9-80"];
+        const dbBits = ["Flat", "Low Flat", "Gear Flat", "Rush", "Low Rush", "Accel", "Taper", "Ball", "Free Ball", "Wall Ball (WB)", "Needle", "Metal Needle", "Orb", "Point", "Hexa", "Elevate", "Disc Ball", "Gear Needle", "Wedge", "Yielding", "Ignition"];
+
+        let appState = {
+            players: [
+                { id: 1, name: "Spieler 1", nickname: "StormRider", birthdate: "1998-05-12", motto: "Full Speed voraus!", deck: [{ blade: "Wizard Rod", ratchet: "5-60", bit: "Ball" }, { blade: "Dran Sword", ratchet: "3-60", bit: "Flat" }, { blade: "Hell's Scythe", ratchet: "4-60", bit: "Taper" }], wins: 0, losses: 0 },
+                { id: 2, name: "Spieler 2", nickname: "IronWall", birthdate: "2001-08-23", motto: "Unbezwingbar in der Arena!", deck: [{ blade: "Cerberus (Flame/Dark)", ratchet: "5-80", bit: "Wall Ball (WB)" }, { blade: "Knight Shield", ratchet: "3-80", bit: "Needle" }, { blade: "Viper Tail", ratchet: "5-80", bit: "Orb" }], wins: 0, losses: 0 }
+            ],
+            nextPlayerId: 3, editingPlayerId: null, matchNumber: 1,
+            matchEvents: [], rawReportTexts: [],
+            scores: { 1: 0, 2: 0, 3: 0 }, sets: { 1: 0, 2: 0, 3: 0 },
+            activeComboObj1: null, activeComboObj2: null, activeComboObj3: null,
+            activeBlade1: "", activeBlade2: "", activeBlade3: "",
+            currentMatchArena: "", isMultiplayerActive: false,
+            downloadedFileCounters: {}, audioCtx: null, pendingAction: null, isNewMatchSetup: false,
+            globalStats: { spins: 0, bursts: 0, overs: 0, xtremes: 0, bladeWins: {}, ratchetWins: {}, bitWins: {}, arenaCount: {} },
+            matchActiveState: false,
+            tournamentActive: false, tournamentRounds: [], activeTournamentMatchCoords: null, bracketVisible: true,
+            leagueActive: false, activeLeagueData: null, activeLeagueMatchCoords: null
+        };
+
+        const getReqSets = (fmt) => fmt === 'bo3' ? 2 : fmt === 'bo5' ? 3 : fmt === 'bo7' ? 4 : 1;
+
+        function checkArenaMultiplayerOption() {
+            let arena = document.getElementById('arenaSelect').value;
+            let row = document.getElementById('multiplayerModeRow');
+            if (arena.includes("Wide Xtreme") || arena.includes("Infinity")) {
+                row.style.display = 'block';
+            } else {
+                row.style.display = 'none';
+                document.getElementById('isMultiplayerMatch').checked = false;
+                toggleMultiplayerSetup();
+            }
+            saveState();
+        }
+
+        function toggleMultiplayerSetup() {
+            appState.isMultiplayerActive = document.getElementById('isMultiplayerMatch').checked;
+            document.getElementById('player3SetupCol').style.display = appState.isMultiplayerActive ? 'block' : 'none';
+            if (appState.isMultiplayerActive) updateDropdowns();
+            saveState();
+        }
+
+        function updateMatchFormatSelection() {
+            let mode = document.getElementById('gameModeSelect').value;
+            let formatElId = mode === 'tournament' ? 'tournamentMatchFormat' : mode === 'league' ? 'leagueMatchFormat' : 'matchFormatType';
+            let targetElId = mode === 'tournament' ? 'tournamentTargetScore' : mode === 'league' ? 'leagueTargetScore' : 'targetScore';
+            
+            let format = document.getElementById(formatElId).value;
+            let ptsNeeded = parseInt(document.getElementById(targetElId).value) || 4;
+            let setsNeeded = getReqSets(format);
+            let modeText = appState.isMultiplayerActive ? '1vs1vs1' : '1vs1';
+            let arenaName = document.getElementById('arenaSelect').value;
+
+            let arenaDispEl = document.getElementById('scoreboardArenaDisplay');
+            if (arenaDispEl) {
+                arenaDispEl.innerText = `🏟️ Arena: ${arenaName}`;
+            }
+
+            if (format === 'single_game') {
+                document.getElementById('targetLabel').innerText = `Modus: Einzelwertung (${modeText}) | Ziel: ${ptsNeeded} Punkte`;
+                ['1', '2', '3'].forEach(i => document.getElementById(`sets${i}Display`).style.display = 'none');
+            } else {
+                let formatNames = { bo3: 'Best of 3', bo5: 'Best of 5', bo7: 'Best of 7' };
+                document.getElementById('targetLabel').innerText = `Modus: ${formatNames[format]} (${setsNeeded} Sätze zum Sieg, ${modeText}) | Ziel: ${ptsNeeded} Punkte/Satz`;
+                document.getElementById('sets1Display').style.display = 'block';
+                document.getElementById('sets2Display').style.display = 'block';
+                document.getElementById('sets3Display').style.display = appState.isMultiplayerActive ? 'block' : 'none';
+            }
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('bx_app_state', JSON.stringify({
+                ...appState,
+                gameMode: document.getElementById('gameModeSelect').value,
+                arenaSelect: document.getElementById('arenaSelect').value,
+                isMultiplayerChecked: document.getElementById('isMultiplayerMatch').checked,
+                matchFormatType: document.getElementById('matchFormatType').value,
+                tournamentMatchFormat: document.getElementById('tournamentMatchFormat').value,
+                tournamentTargetScore: document.getElementById('tournamentTargetScore').value,
+                leagueMatchFormat: document.getElementById('leagueMatchFormat') ? document.getElementById('leagueMatchFormat').value : 'bo5',
+                leagueTargetScore: document.getElementById('leagueTargetScore') ? document.getElementById('leagueTargetScore').value : '4',
+                targetScore: document.getElementById('targetScore').value,
+                winnerBannerVisible: document.getElementById('winner-banner').style.display === 'block',
+                winnerBannerText: document.getElementById('winner-text').innerText
+            }));
+        }
+
+        function loadState() {
+            let saved = localStorage.getItem('bx_app_state');
+            if (!saved) return;
+            try {
+                let s = JSON.parse(saved);
+                Object.assign(appState, s);
+                appState.players.forEach(p => {
+                    if (p.wins === undefined) p.wins = 0;
+                    if (p.losses === undefined) p.losses = 0;
+                    if (p.nickname === undefined) p.nickname = '';
+                    if (p.birthdate === undefined) p.birthdate = '';
+                    if (p.motto === undefined) p.motto = '';
+                });
+
+                if (s.arenaSelect) document.getElementById('arenaSelect').value = s.arenaSelect;
+                if (s.isMultiplayerChecked !== undefined) {
+                    document.getElementById('isMultiplayerMatch').checked = s.isMultiplayerChecked;
+                    toggleMultiplayerSetup();
+                }
+                checkArenaMultiplayerOption();
+                if (s.matchFormatType) document.getElementById('matchFormatType').value = s.matchFormatType;
+                if (s.tournamentMatchFormat) document.getElementById('tournamentMatchFormat').value = s.tournamentMatchFormat;
+                if (s.tournamentTargetScore) document.getElementById('tournamentTargetScore').value = s.tournamentTargetScore;
+                if (s.leagueMatchFormat && document.getElementById('leagueMatchFormat')) document.getElementById('leagueMatchFormat').value = s.leagueMatchFormat;
+                if (s.leagueTargetScore && document.getElementById('leagueTargetScore')) document.getElementById('leagueTargetScore').value = s.leagueTargetScore;
+                if (s.targetScore) document.getElementById('targetScore').value = s.targetScore;
+                if (s.gameMode) document.getElementById('gameModeSelect').value = s.gameMode;
+
+                toggleGameMode();
+                renderPlayersSetup();
+                updateDropdowns();
+                updateStatsDisplay();
+                updateMatchFormatSelection();
+
+                if (appState.tournamentActive) {
+                    document.getElementById('tournamentControls').style.display = 'none';
+                    document.getElementById('tournamentActiveControls').style.display = 'block';
+                    document.getElementById('byeSelectionContainer').style.display = 'none';
+                    document.getElementById('gameModeSelect').disabled = true;
+                    renderTournamentBracketHTML();
+                } else {
+                    renderByeCheckboxes();
+                }
+
+                if (appState.leagueActive && appState.activeLeagueData) {
+                    document.getElementById('activeLeagueContainer').style.display = 'block';
+                    document.getElementById('activeLeagueTitle').innerText = `Tabelle: ${appState.activeLeagueData.name}`;
+                    document.getElementById('gameModeSelect').disabled = true;
+                    renderLeagueTable();
+                    renderLeagueDayDropdown();
+                }
+
+                if (appState.rawReportTexts.length > 0) {
+                    document.getElementById('reportLog').innerHTML = appState.rawReportTexts.map(rt => {
+                        let [ , title, arenaLine, pvs, sc, ...evs] = rt.split('\n');
+                        return `<p><strong>${title}</strong><br><span style="color: var(--accent-cyan);">${arenaLine}</span><br><strong>${pvs}</strong><br><strong>${sc}</strong>${evs.join('<br>&nbsp;&nbsp;')}</p>`;
+                    }).join('');
+                }
+
+                if (appState.matchActiveState) {
+                    document.getElementById('setupCard').style.display = 'none';
+                    document.getElementById('playersCard').style.display = 'none';
+                    document.querySelectorAll('.match-active-only').forEach(el => el.style.display = 'block');
+                    document.getElementById('player3Box').style.display = appState.isMultiplayerActive ? 'block' : 'none';
+                    ['1', '2', '3'].forEach(i => {
+                        document.getElementById(`score${i}`).innerText = appState.scores[i] || 0;
+                        document.getElementById(`sets${i}Display`).innerText = `Sätze: ${appState.sets[i] || 0}`;
+                        document.getElementById(`labelBlade${i}`).innerText = appState[`activeBlade${i}`] || '- Combo wählen -';
+                    });
+                    if (s.winnerBannerVisible) {
+                        document.getElementById('winner-text').innerText = s.winnerBannerText;
+                        document.getElementById('winner-banner').style.display = 'block';
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function toggleSection(bodyId, btn) {
+            let body = document.getElementById(bodyId);
+            let isHidden = body.style.display === 'none';
+            body.style.display = isHidden ? 'block' : 'none';
+            btn.innerText = isHidden ? 'Ausblenden' : 'Anzeigen';
+        }
+
+        function toggleGameMode() {
+            let mode = document.getElementById('gameModeSelect').value;
+            document.getElementById('singleMatchSetup').style.display = mode === 'single' ? 'block' : 'none';
+            document.getElementById('tournamentSetup').style.display = mode === 'tournament' ? 'block' : 'none';
+            document.getElementById('leagueSetup').style.display = mode === 'league' ? 'block' : 'none';
+            
+            if (mode === 'tournament' && !appState.tournamentActive) renderByeCheckboxes();
+            if (mode !== 'tournament') appState.tournamentActive = false;
+            if (mode !== 'league') appState.leagueActive = false;
+            
+            updateMatchFormatSelection();
+            saveState();
+        }
+
+        const formatCombo = (c) => c ? [c.blade, c.ratchet, c.bit].filter(p => p && p.trim()).join(" ") || "Standard Combo" : "Standard Combo";
+
+        function initAudio() {
+            if (!appState.audioCtx) appState.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSoundSeq(freqs, type = 'square', baseGain = 0.12) {
+            try {
+                initAudio();
+                if (appState.audioCtx && appState.audioCtx.state === 'suspended') {
+                    appState.audioCtx.resume().catch(() => {});
+                }
+                if (!appState.audioCtx) return;
+
+                let now = appState.audioCtx.currentTime;
+                freqs.forEach(t => {
+                    let osc = appState.audioCtx.createOscillator();
+                    let gain = appState.audioCtx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(t.freq, now + t.delay);
+                    
+                    gain.gain.setValueAtTime(baseGain, now + t.delay);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + t.delay + t.dur);
+                    
+                    osc.connect(gain);
+                    gain.connect(appState.audioCtx.destination);
+                    osc.start(now + t.delay);
+                    osc.stop(now + t.delay + t.dur);
+                });
+            } catch (err) {
+                console.warn("Audio playback failed safely:", err);
+            }
+        }
+
+        // 8-Bit Retro Victory Fanfare
+        function playWinSound() {
+            try {
+                let notes = [
+                    { delay: 0.00, freq: 523.25, dur: 0.10 }, // C5
+                    { delay: 0.10, freq: 659.25, dur: 0.10 }, // E5
+                    { delay: 0.20, freq: 783.99, dur: 0.10 }, // G5
+                    { delay: 0.30, freq: 1046.50, dur: 0.25 }, // C6
+                    { delay: 0.50, freq: 880.00, dur: 0.12 }, // A5
+                    { delay: 0.62, freq: 1046.50, dur: 0.40 } // C6
+                ];
+                playSoundSeq(notes, 'square', 0.12);
+            } catch (e) {
+                console.log("Win sound error caught safely:", e);
+            }
+        }
+
+        function renderPlayersSetup() {
+            document.getElementById('playersListContainer').innerHTML = appState.players.map(p => `
+                <div class="player-setup-row">
+                    <input type="text" value="${p.name}" oninput="updatePlayerName(${p.id}, this.value)">
+                    <button class="btn-deck-config" onclick="openDeckModal(${p.id})">Deck (${p.deck.filter(c => c.blade || c.ratchet || c.bit).length})</button>
+                    ${appState.players.length > 2 ? `<button class="btn-remove-player" onclick="removePlayer(${p.id})">X</button>` : ''}
+                </div>
+            `).join('');
+            updateDropdowns();
+            if (!appState.tournamentActive) renderByeCheckboxes();
+            saveState();
+        }
+
+        function renderByeCheckboxes() {
+            let container = document.getElementById('byeCheckboxesList');
+            if (container) container.innerHTML = appState.players.map(p => `<label class="bye-checkbox-row"><input type="checkbox" value="${p.id}" class="bye-chk"> ${p.name}</label>`).join('');
+        }
+
+        function addNewPlayerInput() {
+            appState.players.push({ id: appState.nextPlayerId++, name: `Spieler ${appState.players.length + 1}`, nickname: "", birthdate: "", motto: "", deck: [{ blade: "Dran Sword", ratchet: "3-60", bit: "Flat" }, { blade: "Wizard Arrow", ratchet: "4-60", bit: "Ball" }, { blade: "Hell's Scythe", ratchet: "4-60", bit: "Taper" }], wins: 0, losses: 0 });
+            renderPlayersSetup();
+        }
+
+        function removePlayer(id) {
+            if (appState.players.length <= 2) return alert("Mindestens 2 Spieler erforderlich.");
+            appState.players = appState.players.filter(p => p.id !== id);
+            renderPlayersSetup();
+        }
+
+        function updatePlayerName(id, val) {
+            let p = appState.players.find(x => x.id === id);
+            if (p) { p.name = val; updateDropdowns(); if (!appState.tournamentActive) renderByeCheckboxes(); saveState(); }
+        }
+
+        function updateDropdowns() {
+            let [s1, s2, s3] = ['matchPlayer1', 'matchPlayer2', 'matchPlayer3'].map(id => document.getElementById(id));
+            let opts = appState.players.map(p => `<option value="${p.id}">${p.name} ${p.nickname ? '('+p.nickname+')' : ''}</option>`).join('');
+            [s1, s2, s3].forEach(s => { if (s) { let v = s.value; s.innerHTML = opts; if (v && appState.players.some(p => p.id == v)) s.value = v; } });
+            if (s1 && s2 && s1.value === s2.value && appState.players.length > 1) s2.value = appState.players.find(p => p.id != s1.value).id;
+        }
+
+        function openDeckModal(playerId) {
+            appState.editingPlayerId = playerId;
+            let p = appState.players.find(x => x.id === playerId);
+            if (!p) return;
+            document.getElementById('deckModalTitle').innerText = `Profil & Deck: ${p.name}`;
+            document.getElementById('inputNickname').value = p.nickname || '';
+            document.getElementById('inputBirthdate').value = p.birthdate || '';
+            document.getElementById('inputMotto').value = p.motto || '';
+
+            document.getElementById('deckContainer').innerHTML = [0, 1, 2].map(i => {
+                let c = p.deck[i] || {};
+                return `<div class="deck-item-box">
+                    <h4>Combo ${i+1}</h4>
+                    <div class="modal-select-group"><label>Blade:</label><select id="b_${i}_1">${dbBlades.map(b => `<option value="${b}" ${c.blade === b ? 'selected' : ''}>${b}</option>`).join('')}</select></div>
+                    <div class="modal-select-group"><label>Ratchet:</label><select id="b_${i}_2">${dbRatchets.map(r => `<option value="${r}" ${c.ratchet === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
+                    <div class="modal-select-group"><label>Bit:</label><select id="b_${i}_3">${dbBits.map(bt => `<option value="${bt}" ${c.bit === bt ? 'selected' : ''}>${bt}</option>`).join('')}</select></div>
+                </div>`;
+            }).join('');
+            document.getElementById('modal-deck').style.display = 'flex';
+        }
+
+        function closeDeckModal() { document.getElementById('modal-deck').style.display = 'none'; appState.editingPlayerId = null; }
+
+        function savePlayerDeck() {
+            let p = appState.players.find(x => x.id === appState.editingPlayerId);
+            if (p) {
+                p.nickname = document.getElementById('inputNickname').value;
+                p.birthdate = document.getElementById('inputBirthdate').value;
+                p.motto = document.getElementById('inputMotto').value;
+                p.deck = [0, 1, 2].map(i => ({
+                    blade: document.getElementById(`b_${i}_1`).value,
+                    ratchet: document.getElementById(`b_${i}_2`).value,
+                    bit: document.getElementById(`b_${i}_3`).value
+                }));
+            }
+            closeDeckModal();
+            renderPlayersSetup();
+        }
+
+        function openProfilesModal() {
+            let container = document.getElementById('profilesStatsContainer');
+            container.innerHTML = appState.players.map(p => {
+                let total = (p.wins || 0) + (p.losses || 0);
+                let winRate = total > 0 ? ((p.wins / total) * 100).toFixed(1) : 0;
+                let deckStr = p.deck.map((c, i) => `K${i+1}: ${formatCombo(c)}`).join(' | ');
+                let mottoStr = p.motto ? `"${p.motto}"` : "Kein Spruch";
+                let nickStr = p.nickname ? `(${p.nickname})` : "";
+                let bdayStr = p.birthdate ? `Geb.: ${p.birthdate}` : "";
+                return `<div class="profile-card-item">
+                    <div style="font-weight: bold; color: #fbbf24; margin-bottom: 2px; font-size: 0.9rem; display: flex; justify-content: space-between;">
+                        <span>${p.name} ${nickStr}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">${bdayStr}</span>
+                    </div>
+                    <div style="font-style: italic; font-size: 0.75rem; color: #fbbf24; margin-bottom: 4px;">${mottoStr}</div>
+                    <div style="font-size: 0.8rem; color: var(--text);">🏆 Siege: <strong>${p.wins || 0}</strong> | ❌ Niederlagen: <strong>${p.losses || 0}</strong> | Win-Rate: <strong>${winRate}%</strong></div>
+                    <div style="font-size: 0.75rem; color: var(--accent-cyan); margin-top: 3px;">Deck: ${deckStr}</div>
+                </div>`;
+            }).join('');
+            document.getElementById('modal-profiles').style.display = 'flex';
+        }
+
+        function closeProfilesModal() {
+            document.getElementById('modal-profiles').style.display = 'none';
+        }
+
+        async function exportProfilesFile() {
+            let data = JSON.stringify(appState.players, null, 2);
+            let defaultName = `bey_spielerprofile_${new Date().toISOString().slice(0, 10)}.json`;
+
+            if (window.showSaveFilePicker) {
+                try {
+                    let handle = await window.showSaveFilePicker({
+                        suggestedName: defaultName,
+                        types: [{ description: 'JSON Datei', accept: { 'application/json': ['.json'] } }]
+                    });
+                    let writable = await handle.createWritable();
+                    await writable.write(data);
+                    await writable.close();
+                    alert("Profile erfolgreich gespeichert!");
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                }
+            }
+
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([data], { type: "application/json;charset=utf-8" }));
+            link.download = defaultName;
+            link.click();
+        }
+
+        function importProfilesFile(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let importedPlayers = JSON.parse(e.target.result);
+                    if (Array.isArray(importedPlayers) && importedPlayers.length > 0) {
+                        appState.players = importedPlayers;
+                        appState.players.forEach(p => {
+                            if (p.wins === undefined) p.wins = 0;
+                            if (p.losses === undefined) p.losses = 0;
+                            if (p.nickname === undefined) p.nickname = '';
+                            if (p.birthdate === undefined) p.birthdate = '';
+                            if (p.motto === undefined) p.motto = '';
+                            if (!p.deck) p.deck = [];
+                        });
+                        let maxId = Math.max(...appState.players.map(p => p.id || 1));
+                        appState.nextPlayerId = maxId + 1;
+                        renderPlayersSetup();
+                        openProfilesModal();
+                        alert("Profile erfolgreich geladen!");
+                    } else {
+                        alert("Ungültiges Dateiformat.");
+                    }
+                } catch (err) {
+                    alert("Fehler beim Einlesen der Profildatei.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        /* LIGA MODUL LOGIK */
+        function openCreateLeagueModal() {
+            if (appState.players.length < 2) return alert("Mindestens 2 Spieler in der Profilverwaltung erforderlich!");
+            let container = document.getElementById('leaguePlayerCheckboxes');
+            container.innerHTML = appState.players.map(p => `
+                <label class="league-player-select-item">
+                    <input type="checkbox" value="${p.id}" class="league-player-chk" checked>
+                    <span>${p.name} ${p.nickname ? '<small style="color:var(--text-muted);">('+p.nickname+')</small>' : ''}</span>
+                </label>
+            `).join('');
+            document.getElementById('modal-create-league').style.display = 'flex';
+        }
+
+        function closeCreateLeagueModal() {
+            document.getElementById('modal-create-league').style.display = 'none';
+        }
+
+        function confirmCreateLeague() {
+            let checkedBoxes = Array.from(document.querySelectorAll('.league-player-chk:checked')).map(cb => parseInt(cb.value));
+            if (checkedBoxes.length < 2) return alert("Bitte mindestens 2 Spieler für die Liga auswählen!");
+
+            let leagueName = document.getElementById('leagueNameInput').value.trim() || "Beyblade X Liga";
+            let leaguePlayers = checkedBoxes.map(pid => {
+                let p = appState.players.find(x => x.id === pid);
+                return { id: p.id, name: p.name };
+            });
+
+            // Erstelle Round-Robin Spieltage
+            let schedule = generateRoundRobinSchedule(leaguePlayers);
+
+            appState.leagueActive = true;
+            appState.activeLeagueData = {
+                name: leagueName,
+                players: leaguePlayers,
+                days: schedule,
+                table: {}
+            };
+
+            // Tabelle initialisieren
+            leaguePlayers.forEach(p => {
+                appState.activeLeagueData.table[p.id] = {
+                    played: 0, wins: 0, losses: 0, ptsFor: 0, ptsAgainst: 0, setsFor: 0, setsAgainst: 0
+                };
+            });
+
+            document.getElementById('gameModeSelect').disabled = true;
+            document.getElementById('activeLeagueContainer').style.display = 'block';
+            document.getElementById('activeLeagueTitle').innerText = `Tabelle: ${leagueName}`;
+
+            closeCreateLeagueModal();
+            renderLeagueTable();
+            renderLeagueDayDropdown();
+            saveState();
+        }
+
+        function generateRoundRobinSchedule(playersList) {
+            let p = [...playersList];
+            if (p.length % 2 !== 0) {
+                p.push({ id: null, name: "BYE" }); // Dummy für ungerade Spieler
+            }
+            let n = p.length;
+            let rounds = [];
+
+            for (let r = 0; r < n - 1; r++) {
+                let dayMatches = [];
+                for (let i = 0; i < n / 2; i++) {
+                    let p1 = p[i];
+                    let p2 = p[n - 1 - i];
+                    if (p1.id !== null && p2.id !== null) {
+                        dayMatches.push({
+                            p1Id: p1.id,
+                            p2Id: p2.id,
+                            played: false,
+                            winnerId: null,
+                            p1Score: 0, p2Score: 0,
+                            p1Sets: 0, p2Sets: 0
+                        });
+                    }
+                }
+                rounds.push(dayMatches);
+                p.splice(1, 0, p.pop()); // Rotieren
+            }
+            return rounds;
+        }
+
+        function renderLeagueDayDropdown() {
+            let select = document.getElementById('leagueDaySelect');
+            if (!appState.activeLeagueData) return;
+            select.innerHTML = appState.activeLeagueData.days.map((d, idx) => `<option value="${idx}">Spieltag ${idx + 1} (${d.length} Matches)</option>`).join('');
+            renderLeagueMatches();
+        }
+
+        function renderLeagueMatches() {
+            let dayIdx = parseInt(document.getElementById('leagueDaySelect').value) || 0;
+            let day = appState.activeLeagueData.days[dayIdx];
+            let container = document.getElementById('leagueMatchesList');
+
+            if (!day || day.length === 0) {
+                container.innerHTML = `<div style="font-size:0.8rem; color: var(--text-muted);">Keine Matches an diesem Spieltag.</div>`;
+                return;
+            }
+
+            container.innerHTML = day.map((m, mIdx) => {
+                let p1 = appState.players.find(x => x.id === m.p1Id) || appState.activeLeagueData.players.find(x => x.id === m.p1Id);
+                let p2 = appState.players.find(x => x.id === m.p2Id) || appState.activeLeagueData.players.find(x => x.id === m.p2Id);
+                let p1Name = p1 ? p1.name : "Unbekannt";
+                let p2Name = p2 ? p2.name : "Unbekannt";
+
+                if (m.played) {
+                    let scoreStr = m.p1Sets || m.p2Sets ? `Sätze: ${m.p1Sets}:${m.p2Sets} (${m.p1Score}:${m.p2Score} Pkt)` : `${m.p1Score}:${m.p2Score} Pkt`;
+                    return `<div class="league-match-item">
+                        <div style="font-size: 0.8rem; font-weight: 600;">${p1Name} vs ${p2Name}</div>
+                        <div style="font-size: 0.75rem; color: var(--accent-green); font-weight: bold;">✔ ${scoreStr}</div>
+                    </div>`;
+                } else {
+                    return `<div class="league-match-item">
+                        <div style="font-size: 0.8rem; font-weight: 600;">${p1Name} vs ${p2Name}</div>
+                        <button class="btn-play-bracket btn-green" onclick="startLeagueMatch(${dayIdx}, ${mIdx})">Spielen</button>
+                    </div>`;
+                }
+            }).join('');
+        }
+
+        function renderLeagueTable() {
+            let container = document.getElementById('leagueTableContainer');
+            if (!appState.activeLeagueData) return;
+
+            let stats = appState.activeLeagueData.table;
+            let sortedPlayers = [...appState.activeLeagueData.players].sort((a, b) => {
+                let sA = stats[a.id] || {}, sB = stats[b.id] || {};
+                if ((sB.wins || 0) !== (sA.wins || 0)) return (sB.wins || 0) - (sA.wins || 0);
+                let diffA = (sA.ptsFor || 0) - (sA.ptsAgainst || 0);
+                let diffB = (sB.ptsFor || 0) - (sB.ptsAgainst || 0);
+                return diffB - diffA;
+            });
+
+            container.innerHTML = `
+                <table class="league-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Spieler</th>
+                            <th>Sp</th>
+                            <th>S</th>
+                            <th>N</th>
+                            <th>Pkt</th>
+                            <th>Sätze</th>
+                            <th>Diff</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sortedPlayers.map((p, idx) => {
+                            let s = stats[p.id] || { played: 0, wins: 0, losses: 0, ptsFor: 0, ptsAgainst: 0, setsFor: 0, setsAgainst: 0 };
+                            let diff = s.ptsFor - s.ptsAgainst;
+                            let diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+                            return `
+                                <tr>
+                                    <td>${idx + 1}</td>
+                                    <td>${p.name}</td>
+                                    <td>${s.played}</td>
+                                    <td>${s.wins}</td>
+                                    <td>${s.losses}</td>
+                                    <td>${s.ptsFor}:${s.ptsAgainst}</td>
+                                    <td>${s.setsFor}:${s.setsAgainst}</td>
+                                    <td style="color: ${diff > 0 ? 'var(--accent-green)' : diff < 0 ? 'var(--accent-red)' : 'var(--text)'};">${diffStr}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function startLeagueMatch(dayIdx, matchIdx) {
+            appState.activeLeagueMatchCoords = { dayIdx, matchIdx };
+            let m = appState.activeLeagueData.days[dayIdx][matchIdx];
+            document.getElementById('matchPlayer1').value = m.p1Id;
+            document.getElementById('matchPlayer2').value = m.p2Id;
+            startNewMatch();
+        }
+
+        function cancelActiveLeague() {
+            if (confirm("Liga wirklich beenden? Der aktuelle Stand wird zurückgesetzt.")) {
+                appState.leagueActive = false;
+                appState.activeLeagueData = null;
+                appState.activeLeagueMatchCoords = null;
+                document.getElementById('activeLeagueContainer').style.display = 'none';
+                document.getElementById('gameModeSelect').disabled = false;
+                saveState();
+            }
+        }
+
+        async function exportLeagueFile() {
+            if (!appState.activeLeagueData) return alert("Keine aktive Liga zum Speichern vorhanden.");
+            let data = JSON.stringify(appState.activeLeagueData, null, 2);
+            let defaultName = `liga_${appState.activeLeagueData.name.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().slice(0, 10)}.json`;
+
+            if (window.showSaveFilePicker) {
+                try {
+                    let handle = await window.showSaveFilePicker({
+                        suggestedName: defaultName,
+                        types: [{ description: 'JSON Datei', accept: { 'application/json': ['.json'] } }]
+                    });
+                    let writable = await handle.createWritable();
+                    await writable.write(data);
+                    await writable.close();
+                    alert("Liga erfolgreich abgespeichert!");
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                }
+            }
+
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([data], { type: "application/json;charset=utf-8" }));
+            link.download = defaultName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function importLeagueFile(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let importedLeague = JSON.parse(e.target.result);
+                    if (importedLeague && importedLeague.days && importedLeague.table) {
+                        appState.activeLeagueData = importedLeague;
+                        appState.leagueActive = true;
+                        
+                        // Synchronisiere fehlende Liga-Spieler mit den lokalen Spielerprofilen, falls nötig
+                        if (Array.isArray(importedLeague.players)) {
+                            importedLeague.players.forEach(lp => {
+                                if (!appState.players.some(p => p.id === lp.id)) {
+                                    appState.players.push({
+                                        id: lp.id,
+                                        name: lp.name,
+                                        nickname: "",
+                                        birthdate: "",
+                                        motto: "",
+                                        deck: [{ blade: "Dran Sword", ratchet: "3-60", bit: "Flat" }, { blade: "Wizard Arrow", ratchet: "4-60", bit: "Ball" }, { blade: "Hell's Scythe", ratchet: "4-60", bit: "Taper" }],
+                                        wins: 0,
+                                        losses: 0
+                                    });
+                                }
+                            });
+                            renderPlayersSetup();
+                        }
+
+                        document.getElementById('gameModeSelect').value = 'league';
+                        toggleGameMode();
+                        document.getElementById('activeLeagueContainer').style.display = 'block';
+                        document.getElementById('activeLeagueTitle').innerText = `Tabelle: ${importedLeague.name}`;
+                        document.getElementById('gameModeSelect').disabled = true;
+                        renderLeagueTable();
+                        renderLeagueDayDropdown();
+                        saveState();
+                        alert("Liga erfolgreich geladen!");
+                    } else {
+                        alert("Ungültiges Liga-Dateiformat.");
+                    }
+                } catch (err) {
+                    alert("Fehler beim Einlesen der Liga-Datei.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function generateTournamentBracket() {
+            if (appState.players.length < 2) return alert("Mindestens 2 Spieler nötig.");
+            let byeSet = new Set(Array.from(document.querySelectorAll('.bye-chk:checked')).map(chk => parseInt(chk.value)));
+            let byePlayers = appState.players.filter(p => byeSet.has(p.id));
+            let regularPlayers = [...appState.players.filter(p => !byeSet.has(p.id))].sort(() => Math.random() - 0.5);
+
+            appState.tournamentActive = true;
+            document.getElementById('tournamentControls').style.display = 'none';
+            document.getElementById('tournamentActiveControls').style.display = 'block';
+            document.getElementById('byeSelectionContainer').style.display = 'none';
+            document.getElementById('gameModeSelect').disabled = true;
+
+            let round1 = [];
+            let i = 0;
+            if (appState.isMultiplayerActive) {
+                while (i < regularPlayers.length - 2) {
+                    round1.push({ p1Id: regularPlayers[i++].id, p2Id: regularPlayers[i++].id, p3Id: regularPlayers[i++].id, winnerId: null });
+                }
+                let remaining = regularPlayers.length - i;
+                if (remaining > 0) {
+                    let lastGroup = [];
+                    while (i < regularPlayers.length) lastGroup.push(regularPlayers[i++].id);
+                    while (byePlayers.length > 0 && lastGroup.length < 3) lastGroup.push(byePlayers.shift().id);
+                    while (lastGroup.length < 3 && round1.length > 0) {
+                        let prev = round1[round1.length - 1];
+                        if (!prev.p3Id) { prev.p3Id = lastGroup[0]; lastGroup = []; break; }
+                        break;
+                    }
+                    if (lastGroup.length >= 3) {
+                        round1.push({ p1Id: lastGroup[0], p2Id: lastGroup[1], p3Id: lastGroup[2], winnerId: null });
+                    } else if (lastGroup.length > 0) {
+                        byePlayers.push(...lastGroup.map(id => appState.players.find(p => p.id === id)));
+                    }
+                }
+                byePlayers.forEach(bp => round1.push({ p1Id: bp.id, p2Id: null, p3Id: null, winnerId: bp.id }));
+            } else {
+                while (i < regularPlayers.length - 1) round1.push({ p1Id: regularPlayers[i++].id, p2Id: regularPlayers[i++].id, p3Id: null, winnerId: null });
+                if (i < regularPlayers.length) byePlayers.push(regularPlayers[i]);
+                byePlayers.forEach(bp => round1.push({ p1Id: bp.id, p2Id: null, p3Id: null, winnerId: bp.id }));
+            }
+
+            let divisor = appState.isMultiplayerActive ? 3 : 2;
+            let power = 1;
+            while (power < round1.length * divisor) power *= divisor;
+            while (round1.length < power / divisor) round1.push({ p1Id: null, p2Id: null, p3Id: appState.isMultiplayerActive ? null : undefined, winnerId: null });
+
+            appState.tournamentRounds = [round1];
+            let cnt = round1.length;
+            while (cnt > 1) {
+                cnt = Math.ceil(cnt / divisor);
+                appState.tournamentRounds.push(Array.from({length: cnt}, () => ({ p1Id: null, p2Id: null, p3Id: appState.isMultiplayerActive ? null : undefined, winnerId: null })));
+            }
+
+            propagateTournamentWinners();
+            renderTournamentBracketHTML();
+            saveState();
+        }
+
+        function propagateTournamentWinners() {
+            let divisor = appState.isMultiplayerActive ? 3 : 2;
+            for (let r = 0; r < appState.tournamentRounds.length - 1; r++) {
+                let cur = appState.tournamentRounds[r], next = appState.tournamentRounds[r + 1];
+                cur.forEach((m, mIdx) => {
+                    let targetMatchIdx = Math.floor(mIdx / divisor);
+                    if (next[targetMatchIdx]) {
+                        let slot = mIdx % divisor;
+                        if (slot === 0) next[targetMatchIdx].p1Id = m.winnerId;
+                        else if (slot === 1) next[targetMatchIdx].p2Id = m.winnerId;
+                        else if (slot === 2) next[targetMatchIdx].p3Id = m.winnerId;
+                    }
+                });
+            }
+        }
+
+        function renderTournamentBracketHTML() {
+            let container = document.getElementById('tournamentBracketContainer');
+            if (!appState.bracketVisible) {
+                container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 10px;">Turnierbaum ist ausgeblendet.</div>`;
+                return;
+            }
+            let roundNames = ["Achtelfinale", "Viertelfinale", "Halbfinale", "Finale"];
+            container.innerHTML = `<div class="bracket-container">` + appState.tournamentRounds.map((rounds, rIdx) => {
+                let name = roundNames[roundNames.length - appState.tournamentRounds.length + rIdx] || `Runde ${rIdx + 1}`;
+                if (appState.tournamentRounds.length === 1) name = "Finale";
+                return `<div class="bracket-round-box"><div class="bracket-round-title">${name}</div>` + rounds.map((m, mIdx) => {
+                    let p1 = appState.players.find(p => p.id === m.p1Id), p2 = appState.players.find(p => p.id === m.p2Id), p3 = appState.isMultiplayerActive ? appState.players.find(p => p.id === m.p3Id) : null;
+                    let matchupText = appState.isMultiplayerActive ? `${p1 ? p1.name : "TBD"} vs ${p2 ? p2.name : "TBD"} vs ${p3 ? p3.name : "TBD"}` : `${p1 ? p1.name : "TBD"} vs ${p2 ? p2.name : "TBD"}`;
+                    let readyCondition = appState.isMultiplayerActive ? (m.p1Id !== null && m.p2Id !== null && m.p3Id !== null) : (m.p1Id !== null && m.p2Id !== null);
+                    let action = m.winnerId !== null && (m.p1Id === null || m.p2Id === null || (appState.isMultiplayerActive && m.p3Id === null)) ? `<span style="color: var(--accent-green); font-size: 0.75rem;">Freilos: ${appState.players.find(p => p.id === m.winnerId)?.name || ""}</span>` :
+                                 m.winnerId !== null ? `<span style="color: var(--accent-green); font-size: 0.75rem;">Sieger: ${appState.players.find(p => p.id === m.winnerId)?.name || ""}</span>` :
+                                 readyCondition ? `<button class="btn-play-bracket btn-green" onclick="startTournamentMatch(${rIdx}, ${mIdx})">Spielen</button>` : `<span style="color: var(--text-muted); font-size: 0.75rem;">Warte auf Gegner</span>`;
+                    return `<div class="bracket-match"><div class="bracket-match-info">${matchupText}</div><div>${action}</div></div>`;
+                }).join('') + `</div>`;
+            }).join('') + `</div>`;
+        }
+
+        function toggleBracketVisibility() {
+            appState.bracketVisible = !appState.bracketVisible;
+            document.getElementById('btnToggleBracketText').innerText = appState.bracketVisible ? "Turnierbaum verbergen" : "Turnierbaum anzeigen";
+            renderTournamentBracketHTML();
+            saveState();
+        }
+
+        function cancelActiveTournament() {
+            if (confirm("Turnier wirklich abbrechen?")) {
+                Object.assign(appState, { tournamentActive: false, tournamentRounds: [], activeTournamentMatchCoords: null, bracketVisible: true });
+                document.getElementById('gameModeSelect').disabled = false;
+                document.getElementById('tournamentControls').style.display = 'block';
+                document.getElementById('tournamentActiveControls').style.display = 'none';
+                document.getElementById('byeSelectionContainer').style.display = 'block';
+                document.getElementById('tournamentBracketContainer').innerHTML = '';
+                renderByeCheckboxes();
+                saveState();
+            }
+        }
+
+        function startTournamentMatch(roundIdx, matchIdx) {
+            appState.activeTournamentMatchCoords = { roundIdx, matchIdx };
+            let m = appState.tournamentRounds[roundIdx][matchIdx];
+            document.getElementById('matchPlayer1').value = m.p1Id;
+            document.getElementById('matchPlayer2').value = m.p2Id;
+            if (appState.isMultiplayerActive) {
+                document.getElementById('matchPlayer3').value = m.p3Id;
+                document.getElementById('player3SetupCol').style.display = 'block';
+            }
+            startNewMatch();
+        }
+
+        function openBladeModal(isRoundStart = false) {
+            appState.isNewMatchSetup = isRoundStart;
+            let p1 = appState.players.find(p => p.id == document.getElementById('matchPlayer1').value);
+            let p2 = appState.players.find(p => p.id == document.getElementById('matchPlayer2').value);
+            let p3 = appState.isMultiplayerActive ? appState.players.find(p => p.id == document.getElementById('matchPlayer3').value) : null;
+            
+            if (!p1 || !p2 || (appState.isMultiplayerActive && !p3)) return alert("Bitte alle Spieler wählen!");
+
+            document.getElementById('selectBlade1').innerHTML = p1.deck.map((c, i) => `<option value="${i}">${formatCombo(c)}</option>`).join('');
+            document.getElementById('selectBlade2').innerHTML = p2.deck.map((c, i) => `<option value="${i}">${formatCombo(c)}</option>`).join('');
+            
+            let g3 = document.getElementById('groupBlade3');
+            if (appState.isMultiplayerActive && p3) {
+                g3.style.display = 'block';
+                document.getElementById('selectBlade3').innerHTML = p3.deck.map((c, i) => `<option value="${i}">${formatCombo(c)}</option>`).join('');
+            } else g3.style.display = 'none';
+
+            document.getElementById('modalTitle').innerText = isRoundStart ? "Combo-Auswahl" : "Nächste Runde: Combo wählen!";
+            document.getElementById('modal-blade').style.display = 'flex';
+        }
+
+        function cancelBladeModal() {
+            document.getElementById('modal-blade').style.display = 'none';
+            let disp = appState.isNewMatchSetup ? 'none' : 'block';
+            document.querySelectorAll('.match-active-only').forEach(el => el.style.display = disp);
+            document.getElementById('setupCard').style.display = appState.isNewMatchSetup ? 'block' : 'none';
+            document.getElementById('playersCard').style.display = appState.isNewMatchSetup ? 'block' : 'none';
+            if (appState.isNewMatchSetup) {
+                appState.matchActiveState = false;
+                stopMatchAudio();
+            }
+            saveState();
+        }
+
+        function startNewMatch() {
+            Object.assign(appState, { scores: {1:0, 2:0, 3:0}, sets: {1:0, 2:0, 3:0}, matchEvents: [], matchActiveState: true, currentMatchArena: document.getElementById('arenaSelect').value });
+            ['1', '2', '3'].forEach(i => { document.getElementById(`score${i}`).innerText = '0'; document.getElementById(`sets${i}Display`).innerText = 'Sätze: 0'; });
+            document.getElementById('winner-banner').style.display = 'none';
+            updateMatchFormatSelection();
+            checkAndPlayMatchAudio();
+            openBladeModal(true);
+            saveState();
+        }
+
+        function checkAndPlayMatchAudio() {
+            let audioEl = document.getElementById('matchAudio');
+            if (audioEl) {
+                audioEl.currentTime = 0;
+                audioEl.play().catch(e => console.log("Autoplay von Browser blockiert.", e));
+            }
+        }
+
+        function stopMatchAudio() {
+            let audioEl = document.getElementById('matchAudio');
+            if (audioEl) {
+                audioEl.pause();
+                audioEl.currentTime = 0;
+            }
+        }
+
+        function quickRematch() { startNewMatch(); }
+
+        function cancelActiveMatch() {
+            if (confirm("Match wirklich abbrechen?")) {
+                stopMatchAudio();
+                Object.assign(appState, { matchActiveState: false, activeTournamentMatchCoords: null, activeLeagueMatchCoords: null, scores: {1:0, 2:0, 3:0}, sets: {1:0, 2:0, 3:0} });
+                document.querySelectorAll('.match-active-only').forEach(el => el.style.display = 'none');
+                document.getElementById('setupCard').style.display = 'block';
+                document.getElementById('playersCard').style.display = 'block';
+                document.getElementById('winner-banner').style.display = 'none';
+                saveState();
+            }
+        }
+
+        function confirmBladeSelection() {
+            let p1 = appState.players.find(p => p.id == document.getElementById('matchPlayer1').value);
+            let p2 = appState.players.find(p => p.id == document.getElementById('matchPlayer2').value);
+            let p3 = appState.isMultiplayerActive ? appState.players.find(p => p.id == document.getElementById('matchPlayer3').value) : null;
+            
+            appState.activeComboObj1 = p1.deck[document.getElementById('selectBlade1').value] || {};
+            appState.activeComboObj2 = p2.deck[document.getElementById('selectBlade2').value] || {};
+            appState.activeBlade1 = formatCombo(appState.activeComboObj1);
+            appState.activeBlade2 = formatCombo(appState.activeComboObj2);
+
+            document.getElementById('labelName1').innerText = p1.name;
+            document.getElementById('labelName2').innerText = p2.name;
+            document.getElementById('labelBlade1').innerText = appState.activeBlade1;
+            document.getElementById('labelBlade2').innerText = appState.activeBlade2;
+
+            let p3Box = document.getElementById('player3Box');
+            if (appState.isMultiplayerActive && p3) {
+                appState.activeComboObj3 = p3.deck[document.getElementById('selectBlade3').value] || {};
+                appState.activeBlade3 = formatCombo(appState.activeComboObj3);
+                document.getElementById('labelName3').innerText = p3.name;
+                document.getElementById('labelBlade3').innerText = appState.activeBlade3;
+                p3Box.style.display = 'block';
+            } else p3Box.style.display = 'none';
+
+            document.getElementById('modal-blade').style.display = 'none';
+            document.getElementById('setupCard').style.display = 'none';
+            document.getElementById('playersCard').style.display = 'none';
+            document.querySelectorAll('.match-active-only').forEach(el => el.style.display = 'block');
+            saveState();
+        }
+
+        function requestScore(player, points, type) {
+            appState.pendingAction = { type: 'score', player, points, finishType: type };
+            let activeName = document.getElementById(`labelName${player}`).innerText;
+            let activeCombo = player === 1 ? appState.activeBlade1 : player === 2 ? appState.activeBlade2 : appState.activeBlade3;
+            document.getElementById('confirmMsg').innerHTML = `<strong>${activeName}</strong> (${activeCombo}) erzielt<br><span style="color: var(--accent-orange);">${points} Pkt durch ${type}</span>?`;
+            document.getElementById('modal-confirm').style.display = 'flex';
+        }
+
+        function requestDisqualification(player) {
+            appState.pendingAction = { type: 'disq', disqPlayer: player };
+            document.getElementById('confirmMsg').innerHTML = `<strong>${document.getElementById(`labelName${player}`).innerText}</strong> disqualifizieren?`;
+            document.getElementById('modal-confirm').style.display = 'flex';
+        }
+
+        function closeConfirmModal() { appState.pendingAction = null; document.getElementById('modal-confirm').style.display = 'none'; }
+
+        function executeConfirmedScore() {
+            if (!appState.pendingAction) return;
+            let action = appState.pendingAction;
+            closeConfirmModal();
+
+            let mode = document.getElementById('gameModeSelect').value;
+            let formatElId = mode === 'tournament' ? 'tournamentMatchFormat' : mode === 'league' ? 'leagueMatchFormat' : 'matchFormatType';
+            let targetElId = mode === 'tournament' ? 'tournamentTargetScore' : mode === 'league' ? 'leagueTargetScore' : 'targetScore';
+            
+            let format = document.getElementById(formatElId).value;
+            let targetPts = parseInt(document.getElementById(targetElId).value) || 4;
+            let setsToWin = getReqSets(format);
+
+            if (action.type === 'score') {
+                let { player: p, points: pts, finishType: type } = action;
+                appState.scores[p] += pts;
+                document.getElementById(`score${p}`).innerText = appState.scores[p];
+
+                let activeName = document.getElementById(`labelName${p}`).innerText;
+                let activeCombo = p === 1 ? appState.activeBlade1 : p === 2 ? appState.activeBlade2 : appState.activeBlade3;
+                appState.matchEvents.push(`${activeName} (${activeCombo}) erzielt ${pts} Pkt durch ${type}`);
+
+                if (type.includes('Spin')) appState.globalStats.spins++;
+                else if (type.includes('Burst')) appState.globalStats.bursts++;
+                else if (type.includes('Over')) appState.globalStats.overs++;
+                else if (type.includes('Xtreme')) appState.globalStats.xtremes++;
+
+                if (appState.scores[p] >= targetPts) {
+                    if (format === 'single_game') {
+                        handleMatchWin(p, p === 1 ? appState.activeComboObj1 : p === 2 ? appState.activeComboObj2 : appState.activeComboObj3, activeCombo);
+                    } else {
+                        appState.sets[p]++;
+                        document.getElementById(`sets${p}Display`).innerText = `Sätze: ${appState.sets[p]}`;
+                        appState.matchEvents.push(`--- ${activeName} gewinnt Satz! ---`);
+                        if (appState.sets[p] >= setsToWin) {
+                            handleMatchWin(p, p === 1 ? appState.activeComboObj1 : p === 2 ? appState.activeComboObj2 : appState.activeComboObj3, activeCombo);
+                        } else {
+                            appState.scores = { 1: 0, 2: 0, 3: 0 };
+                            ['1', '2', '3'].forEach(i => document.getElementById(`score${i}`).innerText = '0');
+                            setTimeout(() => openBladeModal(false), 200);
+                        }
+                    }
+                } else setTimeout(() => openBladeModal(false), 200);
+            } else if (action.type === 'disq') {
+                let winner = action.disqPlayer === 1 ? 2 : 1;
+                handleMatchWin(winner, winner === 1 ? appState.activeComboObj1 : appState.activeComboObj2, winner === 1 ? appState.activeBlade1 : appState.activeBlade2);
+            }
+            saveState();
+        }
+
+        function handleMatchWin(winnerNum, comboObj, bladeStr) {
+            playWinSound();
+            stopMatchAudio();
+            let winnerId = parseInt(document.getElementById(`matchPlayer${winnerNum}`).value);
+            let winnerName = document.getElementById(`labelName${winnerNum}`).innerText;
+
+            let activeMatchPlayerIds = [
+                parseInt(document.getElementById('matchPlayer1').value),
+                parseInt(document.getElementById('matchPlayer2').value)
+            ];
+            if (appState.isMultiplayerActive) {
+                let p3Val = parseInt(document.getElementById('matchPlayer3').value);
+                if (!isNaN(p3Val)) activeMatchPlayerIds.push(p3Val);
+            }
+
+            activeMatchPlayerIds.forEach(pid => {
+                let pObj = appState.players.find(p => p.id === pid);
+                if (pObj) {
+                    if (pid === winnerId) {
+                        pObj.wins = (pObj.wins || 0) + 1;
+                    } else {
+                        pObj.losses = (pObj.losses || 0) + 1;
+                    }
+                }
+            });
+
+            // Turniermodus Auswertung
+            if (appState.tournamentActive && appState.activeTournamentMatchCoords !== null) {
+                appState.tournamentRounds[appState.activeTournamentMatchCoords.roundIdx][appState.activeTournamentMatchCoords.matchIdx].winnerId = winnerId;
+                propagateTournamentWinners();
+                renderTournamentBracketHTML();
+                appState.activeTournamentMatchCoords = null;
+            }
+
+            // Liga Auswertung & Tabellenupdate
+            if (appState.leagueActive && appState.activeLeagueMatchCoords !== null) {
+                let { dayIdx, matchIdx } = appState.activeLeagueMatchCoords;
+                let m = appState.activeLeagueData.days[dayIdx][matchIdx];
+                m.played = true;
+                m.winnerId = winnerId;
+
+                let p1Id = m.p1Id;
+                let p2Id = m.p2Id;
+                m.p1Score = appState.scores[1] || 0;
+                m.p2Score = appState.scores[2] || 0;
+                m.p1Sets = appState.sets[1] || 0;
+                m.p2Sets = appState.sets[2] || 0;
+
+                let t = appState.activeLeagueData.table;
+                if (!t[p1Id]) t[p1Id] = { played: 0, wins: 0, losses: 0, ptsFor: 0, ptsAgainst: 0, setsFor: 0, setsAgainst: 0 };
+                if (!t[p2Id]) t[p2Id] = { played: 0, wins: 0, losses: 0, ptsFor: 0, ptsAgainst: 0, setsFor: 0, setsAgainst: 0 };
+
+                t[p1Id].played++;
+                t[p2Id].played++;
+
+                t[p1Id].ptsFor += m.p1Score;
+                t[p1Id].ptsAgainst += m.p2Score;
+                t[p2Id].ptsFor += m.p2Score;
+                t[p2Id].ptsAgainst += m.p1Score;
+
+                t[p1Id].setsFor += m.p1Sets;
+                t[p1Id].setsAgainst += m.p2Sets;
+                t[p2Id].setsFor += m.p2Sets;
+                t[p2Id].setsAgainst += m.p1Sets;
+
+                if (winnerId === p1Id) {
+                    t[p1Id].wins++;
+                    t[p2Id].losses++;
+                } else {
+                    t[p2Id].wins++;
+                    t[p1Id].losses++;
+                }
+
+                renderLeagueTable();
+                renderLeagueMatches();
+                appState.activeLeagueMatchCoords = null;
+            }
+
+            recordWin(comboObj, bladeStr);
+            document.getElementById('winner-text').innerText = `${winnerName} gewinnt das Match! 🏆`;
+            document.getElementById('winner-banner').style.display = 'block';
+        }
+
+        function recordWin(comboObj, bladeStr) {
+            if (appState.currentMatchArena) appState.globalStats.arenaCount[appState.currentMatchArena] = (appState.globalStats.arenaCount[appState.currentMatchArena] || 0) + 1;
+            if (comboObj) {
+                let b = comboObj.blade ? comboObj.blade.trim() : bladeStr;
+                let r = comboObj.ratchet ? comboObj.ratchet.trim() : "";
+                let bit = comboObj.bit ? comboObj.bit.trim() : "";
+
+                if (!appState.globalStats.bladeWins[b]) appState.globalStats.bladeWins[b] = { total: 0, finishes: {} };
+                appState.globalStats.bladeWins[b].total++;
+                if (r) appState.globalStats.ratchetWins[r] = (appState.globalStats.ratchetWins[r] || 0) + 1;
+                if (bit) appState.globalStats.bitWins[bit] = (appState.globalStats.bitWins[bit] || 0) + 1;
+            }
+            updateStatsDisplay();
+        }
+
+        const getTopFormatted = (obj, countMap = false) => {
+            let best = "-", max = -1;
+            for (let k in obj) {
+                let val = countMap ? obj[k] : obj[k].total;
+                if (val > max) { max = val; best = countMap ? `${k} (${max}x)` : `${k} (${max} Siege)`; }
+            }
+            return best;
+        };
+
+        function updateStatsDisplay() {
+            let gs = appState.globalStats;
+            document.getElementById('statsContent').innerHTML = `<strong>Arena:</strong> ${appState.currentMatchArena || 'Noch keine'}<br><strong>Finishes:</strong> Spin: ${gs.spins} | Burst: ${gs.bursts} | Over: ${gs.overs} | Xtreme: ${gs.xtremes}<br><strong>Top-Blade:</strong> ${getTopFormatted(gs.bladeWins)}<br><strong>Top-Ratchet:</strong> ${getTopFormatted(gs.ratchetWins, true)} &nbsp;|&nbsp; <strong>Top-Bit:</strong> ${getTopFormatted(gs.bitWins, true)}`;
+        }
+
+        const getPlayersExportString = () => "=== SPIELER- & DECKLISTE ===\n" + appState.players.map((p, idx) => `\n${idx + 1}. ${p.name} ${p.nickname ? '('+p.nickname+')' : ''} ${p.birthdate ? '[Geb: '+p.birthdate+']' : ''}\n   Spruch: "${p.motto || '-'}"\n   Wins: ${p.wins || 0} | Losses: ${p.losses || 0}\n` + p.deck.map((c, cIdx) => `   - Combo ${cIdx + 1}: ${formatCombo(c)}`).join('\n')).join('');
+
+        async function savePlayerListTxt() {
+            let date = new Date().toISOString().slice(0, 10);
+            let data = getPlayersExportString();
+            let defaultName = `spielerliste_decks_${date}.txt`;
+
+            if (window.showSaveFilePicker) {
+                try {
+                    let handle = await window.showSaveFilePicker({
+                        suggestedName: defaultName,
+                        types: [{ description: 'Textdatei', accept: { 'text/plain': ['.txt'] } }]
+                    });
+                    let writable = await handle.createWritable();
+                    await writable.write(data);
+                    await writable.close();
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                }
+            }
+
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([data], { type: "text/plain;charset=utf-8" }));
+            link.download = defaultName;
+            link.click();
+        }
+
+        function saveCurrentMatchToReport() {
+            let n1 = document.getElementById('labelName1').innerText, n2 = document.getElementById('labelName2').innerText, n3 = document.getElementById('labelName3').innerText;
+            let log = document.getElementById('reportLog');
+            if (appState.matchNumber === 1 && log.innerHTML.includes('Noch keine')) log.innerHTML = '';
+
+            let mode = document.getElementById('gameModeSelect').value;
+            let formatElId = mode === 'tournament' ? 'tournamentMatchFormat' : mode === 'league' ? 'leagueMatchFormat' : 'matchFormatType';
+            let format = document.getElementById(formatElId).value;
+            
+            let title = mode === 'tournament' ? `Turnier-Match` : mode === 'league' ? `Liga-Match (${appState.activeLeagueData ? appState.activeLeagueData.name : ''})` : `Spiel (${appState.isMultiplayerActive ? '1vs1vs1' : '1vs1'})`;
+            let pvsStr = appState.isMultiplayerActive ? `${n1} vs. ${n2} vs. ${n3}` : `${n1} vs. ${n2}`;
+            let scoreText = format === 'single_game' ? `Punkte: ${n1}:${appState.scores[1]} | ${n2}:${appState.scores[2]}` : `Sätze: ${n1}:${appState.sets[1]} | ${n2}:${appState.sets[2]}`;
+            let events = appState.matchEvents.map(e => `\n   • ${e}`).join('') || "\n   • Keine Treffer";
+
+            appState.rawReportTexts.unshift(`=== SPIELBERICHT ===\n${title}\nArena: ${appState.currentMatchArena}\n${pvsStr}\n${scoreText}${events}`);
+            log.innerHTML = `<p><strong>${title}</strong><br><span style="color: var(--accent-cyan);">📍 ${appState.currentMatchArena}</span><br><strong>${pvsStr}</strong><br><strong>${scoreText}</strong>${events.replace(/\n/g, '<br>&nbsp;&nbsp;')}</p>` + log.innerHTML;
+
+            Object.assign(appState, { matchActiveState: false });
+            document.querySelectorAll('.match-active-only').forEach(el => el.style.display = 'none');
+            document.getElementById('setupCard').style.display = 'block';
+            document.getElementById('playersCard').style.display = 'block';
+            document.getElementById('winner-banner').style.display = 'none';
+            appState.matchNumber++;
+            saveState();
+        }
+
+        function exportReports() {
+            let gs = appState.globalStats;
+            let data = (appState.rawReportTexts.length ? appState.rawReportTexts.join("\n\n--------------------\n\n") : "Keine Spiele gespielt.") + `\n\n====================\nSTATISTIK:\n- Spin: ${gs.spins}\n- Burst: ${gs.bursts}\n- Over: ${gs.overs}\n- Xtreme: ${gs.xtremes}\n- Top Blade: ${getTopFormatted(gs.bladeWins)}\n\n--------------------\n\n` + getPlayersExportString();
+            navigator.clipboard.writeText(data).then(() => alert("Bericht kopiert!"));
+        }
+
+        async function saveTagesspielberichtTxt() {
+            let date = new Date().toISOString().slice(0, 10);
+            appState.downloadedFileCounters[date] = (appState.downloadedFileCounters[date] || 0) + 1;
+            let count = appState.downloadedFileCounters[date];
+            let gs = appState.globalStats;
+            let data = (appState.rawReportTexts.length ? appState.rawReportTexts.join("\n\n--------------------\n\n") : "Keine Spiele gespielt.") + `\n\n====================\nSTATISTIK:\n- Spin: ${gs.spins}\n- Burst: ${gs.bursts}\n- Over: ${gs.overs}\n- Xtreme: ${gs.xtremes}\n\n--------------------\n\n` + getPlayersExportString();
+            
+            let defaultName = count === 1 ? `spielbericht_${date}.txt` : `spielbericht_${date}-${count}.txt`;
+
+            if (window.showSaveFilePicker) {
+                try {
+                    let handle = await window.showSaveFilePicker({
+                        suggestedName: defaultName,
+                        types: [{ description: 'Textdatei', accept: { 'text/plain': ['.txt'] } }]
+                    });
+                    let writable = await handle.createWritable();
+                    await writable.write(data);
+                    await writable.close();
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                }
+            }
+
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([data], { type: "text/plain;charset=utf-8" }));
+            link.download = defaultName;
+            link.click();
+        }
+
+        function clearReports() {
+            if (confirm("Berichte & Statistiken wirklich leeren?")) {
+                Object.assign(appState, { rawReportTexts: [], matchNumber: 1, downloadedFileCounters: {}, globalStats: { spins: 0, bursts: 0, overs: 0, xtremes: 0, bladeWins: {}, ratchetWins: {}, bitWins: {}, arenaCount: {} } });
+                document.getElementById('reportLog').innerHTML = '<p style="color: var(--text-muted); font-style: italic;">Noch keine Spiele gespeichert.</p>';
+                document.getElementById('statsContent').innerText = "Noch keine Runden gespielt.";
+                saveState();
+            }
+        }
+
+        function triggerFactoryReset() {
+            if (confirm("Möchtest du wirklich alles auf Werkseinstellungen zurücksetzen? Alle gespeicherten Spieler, Decks und Berichte gehen dabei verloren!")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function handleLetItRipChoice() {
+            let img = document.getElementById('phoenixImg');
+            img.classList.add('rotating-phoenix');
+            setTimeout(() => {
+                localStorage.setItem('bx_welcomed', 'true');
+                document.getElementById('modal-welcome').style.display = 'none';
+                document.getElementById('mainAppContent').classList.remove('app-hidden');
+                saveState();
+            }, 700);
+        }
+
+        function handleLameChoice() {
+            alert("Schade! Vielleicht ein anderes Mal.");
+            window.location.href = "about:blank";
+        }
+
+        window.onload = () => { 
+            loadState(); 
+            if (!localStorage.getItem('bx_app_state')) {
+                renderPlayersSetup();
+            }
+            if (localStorage.getItem('bx_welcomed')) {
+                document.getElementById('modal-welcome').style.display = 'none';
+                document.getElementById('mainAppContent').classList.remove('app-hidden');
+            } else {
+                document.getElementById('modal-welcome').style.display = 'flex';
+                document.getElementById('mainAppContent').classList.add('app-hidden');
+            }
+        };
+        if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => console.log('Service Worker registriert!', reg))
+      .catch((err) => console.log('Service Worker Fehler:', err));
+  });
+}
+    </script>
+</body>
+</html>
