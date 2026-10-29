@@ -245,7 +245,7 @@
             color: #ef4444;
             border-color: #475569;
         }
-        .btn-red:hover, .btn-remove-player:hover, .btn-cancel-match:hover, .btn-modal-cancel:hover, .btn-confirm-no:hover, .btn-cancel-tournament:hover, .btn-clear-log:hover {
+        .btn-red:hover, .btn-remove-player:hover, .btn-cancel-match:hover, .btn-modal-cancel:hover, .btn-confirm-no:hover, .btn-clear-log:hover {
             background: #7f1d1d;
             border-color: #fca5a5;
             color: #fff;
@@ -793,6 +793,7 @@
                         <label>Spielmodus</label>
                         <select id="gameModeSelect" onchange="toggleGameMode()">
                             <option value="single">Einzelpunktespiel (Freies Match)</option>
+                            <option value="quick">Schnellspiel (Quick Match - Ohne Profile)</option>
                             <option value="tournament">Turniermodus (KO-Bracket)</option>
                             <option value="league">Liga-Modus (Spieltage & Tabelle)</option>
                         </select>
@@ -821,10 +822,10 @@
                 </div>
 
                 <div id="singleMatchSetup">
-                    <div class="setup-row">
-                        <div class="setup-box"><label>Spieler 1</label><select id="matchPlayer1"></select></div>
-                        <div class="setup-box"><label>Spieler 2</label><select id="matchPlayer2"></select></div>
-                        <div class="setup-box" id="player3SetupCol" style="display: none;"><label>Spieler 3</label><select id="matchPlayer3"></select></div>
+                    <div class="setup-row" id="playerInputsRow">
+                        <div class="setup-box" id="p1Container"><label id="labelP1Title">Spieler 1</label><select id="matchPlayer1"></select></div>
+                        <div class="setup-box" id="p2Container"><label id="labelP2Title">Spieler 2</label><select id="matchPlayer2"></select></div>
+                        <div class="setup-box" id="player3SetupCol" style="display: none;"><label id="labelP3Title">Spieler 3</label><select id="matchPlayer3"></select></div>
                     </div>
                     <div class="setup-row">
                         <div class="setup-box">
@@ -1024,7 +1025,7 @@
             scores: { 1: 0, 2: 0, 3: 0 }, sets: { 1: 0, 2: 0, 3: 0 },
             activeComboObj1: null, activeComboObj2: null, activeComboObj3: null,
             activeBlade1: "", activeBlade2: "", activeBlade3: "",
-            currentMatchArena: "", isMultiplayerActive: false,
+            currentMatchArena: "", isMultiplayerActive: false, isQuickMatch: false,
             downloadedFileCounters: {}, audioCtx: null, pendingAction: null, isNewMatchSetup: false,
             globalStats: { spins: 0, bursts: 0, overs: 0, xtremes: 0, bladeWins: {}, ratchetWins: {}, bitWins: {}, arenaCount: {} },
             matchActiveState: false,
@@ -1050,7 +1051,7 @@
         function toggleMultiplayerSetup() {
             appState.isMultiplayerActive = document.getElementById('isMultiplayerMatch').checked;
             document.getElementById('player3SetupCol').style.display = appState.isMultiplayerActive ? 'block' : 'none';
-            if (appState.isMultiplayerActive) updateDropdowns();
+            if (appState.isMultiplayerActive && !appState.isQuickMatch) updateDropdowns();
             saveState();
         }
 
@@ -1130,7 +1131,7 @@
 
                 toggleGameMode();
                 renderPlayersSetup();
-                updateDropdowns();
+                if (!appState.isQuickMatch) updateDropdowns();
                 updateStatsDisplay();
                 updateMatchFormatSelection();
 
@@ -1167,7 +1168,7 @@
                     ['1', '2', '3'].forEach(i => {
                         document.getElementById(`score${i}`).innerText = appState.scores[i] || 0;
                         document.getElementById(`sets${i}Display`).innerText = `Sätze: ${appState.sets[i] || 0}`;
-                        document.getElementById(`labelBlade${i}`).innerText = appState[`activeBlade${i}`] || '- Combo wählen -';
+                        document.getElementById(`labelBlade${i}`).innerText = appState[`activeBlade${i}`] || '-';
                     });
                     if (s.winnerBannerVisible) {
                         document.getElementById('winner-text').innerText = s.winnerBannerText;
@@ -1186,10 +1187,27 @@
 
         function toggleGameMode() {
             let mode = document.getElementById('gameModeSelect').value;
-            document.getElementById('singleMatchSetup').style.display = mode === 'single' ? 'block' : 'none';
+            appState.isQuickMatch = (mode === 'quick');
+            
+            document.getElementById('singleMatchSetup').style.display = (mode === 'single' || mode === 'quick') ? 'block' : 'none';
             document.getElementById('tournamentSetup').style.display = mode === 'tournament' ? 'block' : 'none';
             document.getElementById('leagueSetup').style.display = mode === 'league' ? 'block' : 'none';
             
+            let p1C = document.getElementById('p1Container');
+            let p2C = document.getElementById('p2Container');
+            let p3C = document.getElementById('player3SetupCol');
+
+            if (appState.isQuickMatch) {
+                p1C.innerHTML = '<label>Spieler 1 Name</label><input type="text" id="quickName1" value="Kämpfer 1">';
+                p2C.innerHTML = '<label>Spieler 2 Name</label><input type="text" id="quickName2" value="Kämpfer 2">';
+                p3C.innerHTML = '<label>Spieler 3 Name</label><input type="text" id="quickName3" value="Kämpfer 3">';
+            } else {
+                p1C.innerHTML = '<label>Spieler 1</label><select id="matchPlayer1"></select>';
+                p2C.innerHTML = '<label>Spieler 2</label><select id="matchPlayer2"></select>';
+                p3C.innerHTML = '<label>Spieler 3</label><select id="matchPlayer3"></select>';
+                updateDropdowns();
+            }
+
             if (mode === 'tournament' && !appState.tournamentActive) renderByeCheckboxes();
             if (mode !== 'tournament') appState.tournamentActive = false;
             if (mode !== 'league') appState.leagueActive = false;
@@ -1232,16 +1250,15 @@
             }
         }
 
-        // 8-Bit Retro Victory Fanfare
         function playWinSound() {
             try {
                 let notes = [
-                    { delay: 0.00, freq: 523.25, dur: 0.10 }, // C5
-                    { delay: 0.10, freq: 659.25, dur: 0.10 }, // E5
-                    { delay: 0.20, freq: 783.99, dur: 0.10 }, // G5
-                    { delay: 0.30, freq: 1046.50, dur: 0.25 }, // C6
-                    { delay: 0.50, freq: 880.00, dur: 0.12 }, // A5
-                    { delay: 0.62, freq: 1046.50, dur: 0.40 } // C6
+                    { delay: 0.00, freq: 523.25, dur: 0.10 },
+                    { delay: 0.10, freq: 659.25, dur: 0.10 },
+                    { delay: 0.20, freq: 783.99, dur: 0.10 },
+                    { delay: 0.30, freq: 1046.50, dur: 0.25 },
+                    { delay: 0.50, freq: 880.00, dur: 0.12 },
+                    { delay: 0.62, freq: 1046.50, dur: 0.40 }
                 ];
                 playSoundSeq(notes, 'square', 0.12);
             } catch (e) {
@@ -1257,7 +1274,7 @@
                     ${appState.players.length > 2 ? `<button class="btn-remove-player" onclick="removePlayer(${p.id})">X</button>` : ''}
                 </div>
             `).join('');
-            updateDropdowns();
+            if (!appState.isQuickMatch) updateDropdowns();
             if (!appState.tournamentActive) renderByeCheckboxes();
             saveState();
         }
@@ -1280,10 +1297,11 @@
 
         function updatePlayerName(id, val) {
             let p = appState.players.find(x => x.id === id);
-            if (p) { p.name = val; updateDropdowns(); if (!appState.tournamentActive) renderByeCheckboxes(); saveState(); }
+            if (p) { p.name = val; if (!appState.isQuickMatch) updateDropdowns(); if (!appState.tournamentActive) renderByeCheckboxes(); saveState(); }
         }
 
         function updateDropdowns() {
+            if (appState.isQuickMatch) return;
             let [s1, s2, s3] = ['matchPlayer1', 'matchPlayer2', 'matchPlayer3'].map(id => document.getElementById(id));
             let opts = appState.players.map(p => `<option value="${p.id}">${p.name} ${p.nickname ? '('+p.nickname+')' : ''}</option>`).join('');
             [s1, s2, s3].forEach(s => { if (s) { let v = s.value; s.innerHTML = opts; if (v && appState.players.some(p => p.id == v)) s.value = v; } });
@@ -1441,7 +1459,6 @@
                 return { id: p.id, name: p.name };
             });
 
-            // Erstelle Round-Robin Spieltage
             let schedule = generateRoundRobinSchedule(leaguePlayers);
 
             appState.leagueActive = true;
@@ -1452,7 +1469,6 @@
                 table: {}
             };
 
-            // Tabelle initialisieren
             leaguePlayers.forEach(p => {
                 appState.activeLeagueData.table[p.id] = {
                     played: 0, wins: 0, losses: 0, ptsFor: 0, ptsAgainst: 0, setsFor: 0, setsAgainst: 0
@@ -1472,7 +1488,7 @@
         function generateRoundRobinSchedule(playersList) {
             let p = [...playersList];
             if (p.length % 2 !== 0) {
-                p.push({ id: null, name: "BYE" }); // Dummy für ungerade Spieler
+                p.push({ id: null, name: "BYE" });
             }
             let n = p.length;
             let rounds = [];
@@ -1494,7 +1510,7 @@
                     }
                 }
                 rounds.push(dayMatches);
-                p.splice(1, 0, p.pop()); // Rotieren
+                p.splice(1, 0, p.pop());
             }
             return rounds;
         }
@@ -1590,6 +1606,8 @@
         function startLeagueMatch(dayIdx, matchIdx) {
             appState.activeLeagueMatchCoords = { dayIdx, matchIdx };
             let m = appState.activeLeagueData.days[dayIdx][matchIdx];
+            document.getElementById('gameModeSelect').value = 'single';
+            toggleGameMode();
             document.getElementById('matchPlayer1').value = m.p1Id;
             document.getElementById('matchPlayer2').value = m.p2Id;
             startNewMatch();
@@ -1646,7 +1664,6 @@
                         appState.activeLeagueData = importedLeague;
                         appState.leagueActive = true;
                         
-                        // Synchronisiere fehlende Liga-Spieler mit den lokalen Spielerprofilen, falls nötig
                         if (Array.isArray(importedLeague.players)) {
                             importedLeague.players.forEach(lp => {
                                 if (!appState.players.some(p => p.id === lp.id)) {
@@ -1804,6 +1821,8 @@
         function startTournamentMatch(roundIdx, matchIdx) {
             appState.activeTournamentMatchCoords = { roundIdx, matchIdx };
             let m = appState.tournamentRounds[roundIdx][matchIdx];
+            document.getElementById('gameModeSelect').value = 'single';
+            toggleGameMode();
             document.getElementById('matchPlayer1').value = m.p1Id;
             document.getElementById('matchPlayer2').value = m.p2Id;
             if (appState.isMultiplayerActive) {
@@ -1815,6 +1834,12 @@
 
         function openBladeModal(isRoundStart = false) {
             appState.isNewMatchSetup = isRoundStart;
+            
+            if (appState.isQuickMatch) {
+                setupQuickMatchScoreboard();
+                return;
+            }
+
             let p1 = appState.players.find(p => p.id == document.getElementById('matchPlayer1').value);
             let p2 = appState.players.find(p => p.id == document.getElementById('matchPlayer2').value);
             let p3 = appState.isMultiplayerActive ? appState.players.find(p => p.id == document.getElementById('matchPlayer3').value) : null;
@@ -1832,6 +1857,39 @@
 
             document.getElementById('modalTitle').innerText = isRoundStart ? "Combo-Auswahl" : "Nächste Runde: Combo wählen!";
             document.getElementById('modal-blade').style.display = 'flex';
+        }
+
+        function setupQuickMatchScoreboard() {
+            let n1 = document.getElementById('quickName1') ? document.getElementById('quickName1').value.trim() : "Kämpfer 1";
+            let n2 = document.getElementById('quickName2') ? document.getElementById('quickName2').value.trim() : "Kämpfer 2";
+            let n3 = appState.isMultiplayerActive && document.getElementById('quickName3') ? document.getElementById('quickName3').value.trim() : "";
+
+            appState.activeBlade1 = "-";
+            appState.activeBlade2 = "-";
+            appState.activeBlade3 = "-";
+            appState.activeComboObj1 = null;
+            appState.activeComboObj2 = null;
+            appState.activeComboObj3 = null;
+
+            document.getElementById('labelName1').innerText = n1;
+            document.getElementById('labelName2').innerText = n2;
+            document.getElementById('labelBlade1').innerText = "-";
+            document.getElementById('labelBlade2').innerText = "-";
+
+            let p3Box = document.getElementById('player3Box');
+            if (appState.isMultiplayerActive) {
+                document.getElementById('labelName3').innerText = n3 || "Kämpfer 3";
+                document.getElementById('labelBlade3').innerText = "-";
+                p3Box.style.display = 'block';
+            } else {
+                p3Box.style.display = 'none';
+            }
+
+            document.getElementById('modal-blade').style.display = 'none';
+            document.getElementById('setupCard').style.display = 'none';
+            document.getElementById('playersCard').style.display = 'none';
+            document.querySelectorAll('.match-active-only').forEach(el => el.style.display = 'block');
+            saveState();
         }
 
         function cancelBladeModal() {
@@ -1892,21 +1950,28 @@
             let p2 = appState.players.find(p => p.id == document.getElementById('matchPlayer2').value);
             let p3 = appState.isMultiplayerActive ? appState.players.find(p => p.id == document.getElementById('matchPlayer3').value) : null;
             
+            let n1 = p1.name;
+            let n2 = p2.name;
+            let n3 = p3 ? p3.name : "";
+
             appState.activeComboObj1 = p1.deck[document.getElementById('selectBlade1').value] || {};
             appState.activeComboObj2 = p2.deck[document.getElementById('selectBlade2').value] || {};
             appState.activeBlade1 = formatCombo(appState.activeComboObj1);
             appState.activeBlade2 = formatCombo(appState.activeComboObj2);
 
-            document.getElementById('labelName1').innerText = p1.name;
-            document.getElementById('labelName2').innerText = p2.name;
+            if (appState.isMultiplayerActive && p3) {
+                appState.activeComboObj3 = p3.deck[document.getElementById('selectBlade3').value] || {};
+                appState.activeBlade3 = formatCombo(appState.activeComboObj3);
+            }
+
+            document.getElementById('labelName1').innerText = n1;
+            document.getElementById('labelName2').innerText = n2;
             document.getElementById('labelBlade1').innerText = appState.activeBlade1;
             document.getElementById('labelBlade2').innerText = appState.activeBlade2;
 
             let p3Box = document.getElementById('player3Box');
-            if (appState.isMultiplayerActive && p3) {
-                appState.activeComboObj3 = p3.deck[document.getElementById('selectBlade3').value] || {};
-                appState.activeBlade3 = formatCombo(appState.activeComboObj3);
-                document.getElementById('labelName3').innerText = p3.name;
+            if (appState.isMultiplayerActive) {
+                document.getElementById('labelName3').innerText = n3;
                 document.getElementById('labelBlade3').innerText = appState.activeBlade3;
                 p3Box.style.display = 'block';
             } else p3Box.style.display = 'none';
@@ -1922,7 +1987,8 @@
             appState.pendingAction = { type: 'score', player, points, finishType: type };
             let activeName = document.getElementById(`labelName${player}`).innerText;
             let activeCombo = player === 1 ? appState.activeBlade1 : player === 2 ? appState.activeBlade2 : appState.activeBlade3;
-            document.getElementById('confirmMsg').innerHTML = `<strong>${activeName}</strong> (${activeCombo}) erzielt<br><span style="color: var(--accent-orange);">${points} Pkt durch ${type}</span>?`;
+            let comboText = (activeCombo && activeCombo !== "-") ? ` (${activeCombo})` : "";
+            document.getElementById('confirmMsg').innerHTML = `<strong>${activeName}</strong>${comboText} erzielt<br><span style="color: var(--accent-orange);">${points} Pkt durch ${type}</span>?`;
             document.getElementById('modal-confirm').style.display = 'flex';
         }
 
@@ -1954,7 +2020,8 @@
 
                 let activeName = document.getElementById(`labelName${p}`).innerText;
                 let activeCombo = p === 1 ? appState.activeBlade1 : p === 2 ? appState.activeBlade2 : appState.activeBlade3;
-                appState.matchEvents.push(`${activeName} (${activeCombo}) erzielt ${pts} Pkt durch ${type}`);
+                let comboText = (activeCombo && activeCombo !== "-") ? ` (${activeCombo})` : "";
+                appState.matchEvents.push(`${activeName}${comboText} erzielt ${pts} Pkt durch ${type}`);
 
                 if (type.includes('Spin')) appState.globalStats.spins++;
                 else if (type.includes('Burst')) appState.globalStats.bursts++;
@@ -1973,10 +2040,14 @@
                         } else {
                             appState.scores = { 1: 0, 2: 0, 3: 0 };
                             ['1', '2', '3'].forEach(i => document.getElementById(`score${i}`).innerText = '0');
-                            setTimeout(() => openBladeModal(false), 200);
+                            if (!appState.isQuickMatch) {
+                                setTimeout(() => openBladeModal(false), 200);
+                            }
                         }
                     }
-                } else setTimeout(() => openBladeModal(false), 200);
+                } else if (!appState.isQuickMatch) {
+                    setTimeout(() => openBladeModal(false), 200);
+                }
             } else if (action.type === 'disq') {
                 let winner = action.disqPlayer === 1 ? 2 : 1;
                 handleMatchWin(winner, winner === 1 ? appState.activeComboObj1 : appState.activeComboObj2, winner === 1 ? appState.activeBlade1 : appState.activeBlade2);
@@ -1987,39 +2058,47 @@
         function handleMatchWin(winnerNum, comboObj, bladeStr) {
             playWinSound();
             stopMatchAudio();
-            let winnerId = parseInt(document.getElementById(`matchPlayer${winnerNum}`).value);
             let winnerName = document.getElementById(`labelName${winnerNum}`).innerText;
+            let winnerId = null;
 
-            let activeMatchPlayerIds = [
-                parseInt(document.getElementById('matchPlayer1').value),
-                parseInt(document.getElementById('matchPlayer2').value)
-            ];
-            if (appState.isMultiplayerActive) {
-                let p3Val = parseInt(document.getElementById('matchPlayer3').value);
-                if (!isNaN(p3Val)) activeMatchPlayerIds.push(p3Val);
+            if (!appState.isQuickMatch) {
+                let p1El = document.getElementById('matchPlayer1');
+                let p2El = document.getElementById('matchPlayer2');
+                let winEl = document.getElementById(`matchPlayer${winnerNum}`);
+                
+                if (winEl && p1El && p2El) {
+                    winnerId = parseInt(winEl.value);
+                    let activeMatchPlayerIds = [
+                        parseInt(p1El.value),
+                        parseInt(p2El.value)
+                    ];
+                    if (appState.isMultiplayerActive) {
+                        let p3El = document.getElementById('matchPlayer3');
+                        let p3Val = p3El ? parseInt(p3El.value) : NaN;
+                        if (!isNaN(p3Val)) activeMatchPlayerIds.push(p3Val);
+                    }
+
+                    activeMatchPlayerIds.forEach(pid => {
+                        let pObj = appState.players.find(p => p.id === pid);
+                        if (pObj) {
+                            if (pid === winnerId) {
+                                pObj.wins = (pObj.wins || 0) + 1;
+                            } else {
+                                pObj.losses = (pObj.losses || 0) + 1;
+                            }
+                        }
+                    });
+                }
             }
 
-            activeMatchPlayerIds.forEach(pid => {
-                let pObj = appState.players.find(p => p.id === pid);
-                if (pObj) {
-                    if (pid === winnerId) {
-                        pObj.wins = (pObj.wins || 0) + 1;
-                    } else {
-                        pObj.losses = (pObj.losses || 0) + 1;
-                    }
-                }
-            });
-
-            // Turniermodus Auswertung
-            if (appState.tournamentActive && appState.activeTournamentMatchCoords !== null) {
+            if (appState.tournamentActive && appState.activeTournamentMatchCoords !== null && winnerId !== null) {
                 appState.tournamentRounds[appState.activeTournamentMatchCoords.roundIdx][appState.activeTournamentMatchCoords.matchIdx].winnerId = winnerId;
                 propagateTournamentWinners();
                 renderTournamentBracketHTML();
                 appState.activeTournamentMatchCoords = null;
             }
 
-            // Liga Auswertung & Tabellenupdate
-            if (appState.leagueActive && appState.activeLeagueMatchCoords !== null) {
+            if (appState.leagueActive && appState.activeLeagueMatchCoords !== null && winnerId !== null) {
                 let { dayIdx, matchIdx } = appState.activeLeagueMatchCoords;
                 let m = appState.activeLeagueData.days[dayIdx][matchIdx];
                 m.played = true;
@@ -2074,8 +2153,10 @@
                 let r = comboObj.ratchet ? comboObj.ratchet.trim() : "";
                 let bit = comboObj.bit ? comboObj.bit.trim() : "";
 
-                if (!appState.globalStats.bladeWins[b]) appState.globalStats.bladeWins[b] = { total: 0, finishes: {} };
-                appState.globalStats.bladeWins[b].total++;
+                if (b && b !== "-") {
+                    if (!appState.globalStats.bladeWins[b]) appState.globalStats.bladeWins[b] = { total: 0, finishes: {} };
+                    appState.globalStats.bladeWins[b].total++;
+                }
                 if (r) appState.globalStats.ratchetWins[r] = (appState.globalStats.ratchetWins[r] || 0) + 1;
                 if (bit) appState.globalStats.bitWins[bit] = (appState.globalStats.bitWins[bit] || 0) + 1;
             }
@@ -2133,7 +2214,7 @@
             let formatElId = mode === 'tournament' ? 'tournamentMatchFormat' : mode === 'league' ? 'leagueMatchFormat' : 'matchFormatType';
             let format = document.getElementById(formatElId).value;
             
-            let title = mode === 'tournament' ? `Turnier-Match` : mode === 'league' ? `Liga-Match (${appState.activeLeagueData ? appState.activeLeagueData.name : ''})` : `Spiel (${appState.isMultiplayerActive ? '1vs1vs1' : '1vs1'})`;
+            let title = mode === 'tournament' ? `Turnier-Match` : mode === 'league' ? `Liga-Match (${appState.activeLeagueData ? appState.activeLeagueData.name : ''})` : appState.isQuickMatch ? `Schnellspiel (${appState.isMultiplayerActive ? '1vs1vs1' : '1vs1'})` : `Spiel (${appState.isMultiplayerActive ? '1vs1vs1' : '1vs1'})`;
             let pvsStr = appState.isMultiplayerActive ? `${n1} vs. ${n2} vs. ${n3}` : `${n1} vs. ${n2}`;
             let scoreText = format === 'single_game' ? `Punkte: ${n1}:${appState.scores[1]} | ${n2}:${appState.scores[2]}` : `Sätze: ${n1}:${appState.sets[1]} | ${n2}:${appState.sets[2]}`;
             let events = appState.matchEvents.map(e => `\n   • ${e}`).join('') || "\n   • Keine Treffer";
@@ -2231,13 +2312,14 @@
                 document.getElementById('mainAppContent').classList.add('app-hidden');
             }
         };
+
         if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then((reg) => console.log('Service Worker registriert!', reg))
-      .catch((err) => console.log('Service Worker Fehler:', err));
-  });
-}
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('Service Worker registriert!', reg))
+                    .catch((err) => console.log('Service Worker Fehler:', err));
+            });
+        }
     </script>
 </body>
 </html>
