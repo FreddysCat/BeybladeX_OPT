@@ -240,6 +240,28 @@
             border-color: #0284c7;
         }
 
+        .btn-quickmatch {
+            background: #d97706;
+            color: #ffffff;
+            border-color: #f59e0b;
+        }
+        .btn-quickmatch:hover {
+            background: #b45309;
+            border-color: #d97706;
+        }
+
+        .btn-undo {
+            background: #334155;
+            color: #fbbf24;
+            border: 1px solid #f59e0b;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+        .btn-undo:hover {
+            background: #475569;
+            color: #fef08a;
+        }
+
         .btn-red, .btn-remove-player, .btn-cancel-match, .btn-modal-cancel, .btn-confirm-no, .btn-cancel-tournament, .btn-clear-log, .btn-factory-reset {
             background: #1e293b;
             color: #ef4444;
@@ -793,10 +815,10 @@
                         <label>Spielmodus</label>
                         <select id="gameModeSelect" onchange="toggleGameMode()">
                             <option value="single">Einzelpunktespiel (Freies Match)</option>
-                            <option value="quick">Schnellspiel (Quick Match - Ohne Profile)</option>
                             <option value="tournament">Turniermodus (KO-Bracket)</option>
                             <option value="league">Liga-Modus (Spieltage & Tabelle)</option>
                         </select>
+                        <button class="btn-quickmatch" onclick="startQuickMatchDirectly()" style="width: 100%; margin-top: 8px; padding: 10px; font-size: 0.85rem;">⚡ Schnellspiel Starten (Quick Match)</button>
                     </div>
                 </div>
 
@@ -927,7 +949,10 @@
             <div class="card match-active-only">
                 <h2>
                     <span>Punktezähler</span>
-                    <button class="btn-cancel-match btn-red" onclick="cancelActiveMatch()">Match abbrechen</button>
+                    <div>
+                        <button class="btn-undo" onclick="undoLastAction()">↩ Rückgängig</button>
+                        <button class="btn-cancel-match btn-red" onclick="cancelActiveMatch()">Abbrechen</button>
+                    </div>
                 </h2>
                 <div id="targetLabel" style="font-size: 0.8rem; color: #fbbf24; font-weight: bold; margin-bottom: 4px; text-align: center;">Ziel: 4 Punkte</div>
                 <div id="scoreboardArenaDisplay" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px; text-align: center;">🏟️ Arena: -</div>
@@ -1021,7 +1046,7 @@
                 { id: 2, name: "Spieler 2", nickname: "IronWall", birthdate: "2001-08-23", motto: "Unbezwingbar in der Arena!", deck: [{ blade: "Cerberus (Flame/Dark)", ratchet: "5-80", bit: "Wall Ball (WB)" }, { blade: "Knight Shield", ratchet: "3-80", bit: "Needle" }, { blade: "Viper Tail", ratchet: "5-80", bit: "Orb" }], wins: 0, losses: 0 }
             ],
             nextPlayerId: 3, editingPlayerId: null, matchNumber: 1,
-            matchEvents: [], rawReportTexts: [],
+            matchEvents: [], rawReportTexts: [], actionHistory: [],
             scores: { 1: 0, 2: 0, 3: 0 }, sets: { 1: 0, 2: 0, 3: 0 },
             activeComboObj1: null, activeComboObj2: null, activeComboObj3: null,
             activeBlade1: "", activeBlade2: "", activeBlade3: "",
@@ -1187,9 +1212,9 @@
 
         function toggleGameMode() {
             let mode = document.getElementById('gameModeSelect').value;
-            appState.isQuickMatch = (mode === 'quick');
+            appState.isQuickMatch = false;
             
-            document.getElementById('singleMatchSetup').style.display = (mode === 'single' || mode === 'quick') ? 'block' : 'none';
+            document.getElementById('singleMatchSetup').style.display = (mode === 'single') ? 'block' : 'none';
             document.getElementById('tournamentSetup').style.display = mode === 'tournament' ? 'block' : 'none';
             document.getElementById('leagueSetup').style.display = mode === 'league' ? 'block' : 'none';
             
@@ -1197,16 +1222,10 @@
             let p2C = document.getElementById('p2Container');
             let p3C = document.getElementById('player3SetupCol');
 
-            if (appState.isQuickMatch) {
-                p1C.innerHTML = '<label>Spieler 1 Name</label><input type="text" id="quickName1" value="Kämpfer 1">';
-                p2C.innerHTML = '<label>Spieler 2 Name</label><input type="text" id="quickName2" value="Kämpfer 2">';
-                p3C.innerHTML = '<label>Spieler 3 Name</label><input type="text" id="quickName3" value="Kämpfer 3">';
-            } else {
-                p1C.innerHTML = '<label>Spieler 1</label><select id="matchPlayer1"></select>';
-                p2C.innerHTML = '<label>Spieler 2</label><select id="matchPlayer2"></select>';
-                p3C.innerHTML = '<label>Spieler 3</label><select id="matchPlayer3"></select>';
-                updateDropdowns();
-            }
+            p1C.innerHTML = '<label>Spieler 1</label><select id="matchPlayer1"></select>';
+            p2C.innerHTML = '<label>Spieler 2</label><select id="matchPlayer2"></select>';
+            p3C.innerHTML = '<label>Spieler 3</label><select id="matchPlayer3"></select>';
+            updateDropdowns();
 
             if (mode === 'tournament' && !appState.tournamentActive) renderByeCheckboxes();
             if (mode !== 'tournament') appState.tournamentActive = false;
@@ -1214,6 +1233,23 @@
             
             updateMatchFormatSelection();
             saveState();
+        }
+
+        function startQuickMatchDirectly() {
+            appState.isQuickMatch = true;
+            document.getElementById('singleMatchSetup').style.display = 'block';
+            document.getElementById('tournamentSetup').style.display = 'none';
+            document.getElementById('leagueSetup').style.display = 'none';
+
+            let p1C = document.getElementById('p1Container');
+            let p2C = document.getElementById('p2Container');
+            let p3C = document.getElementById('player3SetupCol');
+
+            p1C.innerHTML = '<label>Spieler 1 Name</label><input type="text" id="quickName1" value="Blader X">';
+            p2C.innerHTML = '<label>Spieler 2 Name</label><input type="text" id="quickName2" value="Blader Y">';
+            p3C.innerHTML = '<label>Spieler 3 Name</label><input type="text" id="quickName3" value="Kämpfer 3">';
+
+            startNewMatch();
         }
 
         const formatCombo = (c) => c ? [c.blade, c.ratchet, c.bit].filter(p => p && p.trim()).join(" ") || "Standard Combo" : "Standard Combo";
@@ -1860,8 +1896,8 @@
         }
 
         function setupQuickMatchScoreboard() {
-            let n1 = document.getElementById('quickName1') ? document.getElementById('quickName1').value.trim() : "Kämpfer 1";
-            let n2 = document.getElementById('quickName2') ? document.getElementById('quickName2').value.trim() : "Kämpfer 2";
+            let n1 = document.getElementById('quickName1') ? document.getElementById('quickName1').value.trim() : "Blader X";
+            let n2 = document.getElementById('quickName2') ? document.getElementById('quickName2').value.trim() : "Blader Y";
             let n3 = appState.isMultiplayerActive && document.getElementById('quickName3') ? document.getElementById('quickName3').value.trim() : "";
 
             appState.activeBlade1 = "-";
@@ -1906,7 +1942,7 @@
         }
 
         function startNewMatch() {
-            Object.assign(appState, { scores: {1:0, 2:0, 3:0}, sets: {1:0, 2:0, 3:0}, matchEvents: [], matchActiveState: true, currentMatchArena: document.getElementById('arenaSelect').value });
+            Object.assign(appState, { scores: {1:0, 2:0, 3:0}, sets: {1:0, 2:0, 3:0}, matchEvents: [], actionHistory: [], matchActiveState: true, currentMatchArena: document.getElementById('arenaSelect').value });
             ['1', '2', '3'].forEach(i => { document.getElementById(`score${i}`).innerText = '0'; document.getElementById(`sets${i}Display`).innerText = 'Sätze: 0'; });
             document.getElementById('winner-banner').style.display = 'none';
             updateMatchFormatSelection();
@@ -1936,7 +1972,7 @@
         function cancelActiveMatch() {
             if (confirm("Match wirklich abbrechen?")) {
                 stopMatchAudio();
-                Object.assign(appState, { matchActiveState: false, activeTournamentMatchCoords: null, activeLeagueMatchCoords: null, scores: {1:0, 2:0, 3:0}, sets: {1:0, 2:0, 3:0} });
+                Object.assign(appState, { matchActiveState: false, activeTournamentMatchCoords: null, activeLeagueMatchCoords: null, scores: {1:0, 2:0, 3:0}, sets: {1:0, 2:0, 3:0}, actionHistory: [] });
                 document.querySelectorAll('.match-active-only').forEach(el => el.style.display = 'none');
                 document.getElementById('setupCard').style.display = 'block';
                 document.getElementById('playersCard').style.display = 'block';
@@ -2015,6 +2051,16 @@
 
             if (action.type === 'score') {
                 let { player: p, points: pts, finishType: type } = action;
+
+                let snapshot = {
+                    scores: { ...appState.scores },
+                    sets: { ...appState.sets },
+                    matchEvents: [ ...appState.matchEvents ],
+                    finishType: type,
+                    setWon: false,
+                    matchWon: false
+                };
+
                 appState.scores[p] += pts;
                 document.getElementById(`score${p}`).innerText = appState.scores[p];
 
@@ -2030,28 +2076,72 @@
 
                 if (appState.scores[p] >= targetPts) {
                     if (format === 'single_game') {
+                        snapshot.matchWon = true;
+                        appState.actionHistory.push(snapshot);
                         handleMatchWin(p, p === 1 ? appState.activeComboObj1 : p === 2 ? appState.activeComboObj2 : appState.activeComboObj3, activeCombo);
                     } else {
                         appState.sets[p]++;
                         document.getElementById(`sets${p}Display`).innerText = `Sätze: ${appState.sets[p]}`;
                         appState.matchEvents.push(`--- ${activeName} gewinnt Satz! ---`);
+                        snapshot.setWon = true;
+
                         if (appState.sets[p] >= setsToWin) {
+                            snapshot.matchWon = true;
+                            appState.actionHistory.push(snapshot);
                             handleMatchWin(p, p === 1 ? appState.activeComboObj1 : p === 2 ? appState.activeComboObj2 : appState.activeComboObj3, activeCombo);
                         } else {
                             appState.scores = { 1: 0, 2: 0, 3: 0 };
                             ['1', '2', '3'].forEach(i => document.getElementById(`score${i}`).innerText = '0');
+                            appState.actionHistory.push(snapshot);
                             if (!appState.isQuickMatch) {
                                 setTimeout(() => openBladeModal(false), 200);
                             }
                         }
                     }
-                } else if (!appState.isQuickMatch) {
-                    setTimeout(() => openBladeModal(false), 200);
+                } else {
+                    appState.actionHistory.push(snapshot);
+                    if (!appState.isQuickMatch) {
+                        setTimeout(() => openBladeModal(false), 200);
+                    }
                 }
             } else if (action.type === 'disq') {
                 let winner = action.disqPlayer === 1 ? 2 : 1;
                 handleMatchWin(winner, winner === 1 ? appState.activeComboObj1 : appState.activeComboObj2, winner === 1 ? appState.activeBlade1 : appState.activeBlade2);
             }
+            saveState();
+        }
+
+        function undoLastAction() {
+            if (!appState.actionHistory || appState.actionHistory.length === 0) {
+                return alert("Keine Aktionen zum Rückgängig machen vorhanden.");
+            }
+
+            let lastState = appState.actionHistory.pop();
+            
+            appState.scores = { ...lastState.scores };
+            appState.sets = { ...lastState.sets };
+            appState.matchEvents = [ ...lastState.matchEvents ];
+
+            ['1', '2', '3'].forEach(i => {
+                let sEl = document.getElementById(`score${i}`);
+                if (sEl) sEl.innerText = appState.scores[i] || 0;
+                let setEl = document.getElementById(`sets${i}Display`);
+                if (setEl) setEl.innerText = `Sätze: ${appState.sets[i] || 0}`;
+            });
+
+            if (lastState.finishType) {
+                let type = lastState.finishType;
+                if (type.includes('Spin') && appState.globalStats.spins > 0) appState.globalStats.spins--;
+                else if (type.includes('Burst') && appState.globalStats.bursts > 0) appState.globalStats.bursts--;
+                else if (type.includes('Over') && appState.globalStats.overs > 0) appState.globalStats.overs--;
+                else if (type.includes('Xtreme') && appState.globalStats.xtremes > 0) appState.globalStats.xtremes--;
+            }
+
+            if (lastState.matchWon) {
+                document.getElementById('winner-banner').style.display = 'none';
+            }
+
+            updateStatsDisplay();
             saveState();
         }
 
@@ -2222,7 +2312,7 @@
             appState.rawReportTexts.unshift(`=== SPIELBERICHT ===\n${title}\nArena: ${appState.currentMatchArena}\n${pvsStr}\n${scoreText}${events}`);
             log.innerHTML = `<p><strong>${title}</strong><br><span style="color: var(--accent-cyan);">📍 ${appState.currentMatchArena}</span><br><strong>${pvsStr}</strong><br><strong>${scoreText}</strong>${events.replace(/\n/g, '<br>&nbsp;&nbsp;')}</p>` + log.innerHTML;
 
-            Object.assign(appState, { matchActiveState: false });
+            Object.assign(appState, { matchActiveState: false, actionHistory: [] });
             document.querySelectorAll('.match-active-only').forEach(el => el.style.display = 'none');
             document.getElementById('setupCard').style.display = 'block';
             document.getElementById('playersCard').style.display = 'block';
