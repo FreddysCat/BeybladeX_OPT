@@ -695,6 +695,39 @@
         </div>
     </div>
 
+    <!-- Quick Tournament Modal -->
+    <div id="modal-quick-tournament" class="modal-overlay">
+        <div class="modal-card" style="max-width: 440px;">
+            <h2>⚡ Turnierschnellmodus</h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Generiert ein KO-Turnier ohne bestehende Profile.</div>
+            <div class="modal-select-group">
+                <label>Anzahl Spieler:</label>
+                <input type="number" id="quickTourneyPlayerCount" value="4" min="2" max="32" oninput="renderQuickTourneyNameInputs()">
+            </div>
+            <div class="modal-select-group" style="margin-top: 8px;">
+                <label>Spielernamen festlegen:</label>
+                <div id="quickTourneyNamesContainer" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-top: 4px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);"></div>
+            </div>
+            <div class="modal-select-group" style="margin-top: 8px;">
+                <label>Turnier Wertung/Format:</label>
+                <select id="quickTourneyFormat">
+                    <option value="single_game">Einzelwertung (1 Satz)</option>
+                    <option value="bo3">Best of 3 (2 Sätze zum Sieg)</option>
+                    <option value="bo5" selected>Best of 5 (3 Sätze zum Sieg)</option>
+                    <option value="bo7">Best of 7 (4 Sätze zum Sieg)</option>
+                </select>
+            </div>
+            <div class="modal-select-group" style="margin-top: 8px;">
+                <label>Zielpunkte pro Satz:</label>
+                <input type="number" id="quickTourneyTargetScore" value="4" min="1" max="20">
+            </div>
+            <div class="modal-btn-row">
+                <button class="btn-modal-cancel" onclick="closeQuickTourneyModal()">Abbrechen</button>
+                <button class="btn-modal-start btn-quickmatch" onclick="confirmStartQuickTournament()">Turnier Starten</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Liga Erstellungs-Modal -->
     <div id="modal-create-league" class="modal-overlay">
         <div class="modal-card" style="max-width: 440px;">
@@ -868,6 +901,8 @@
                 </div>
 
                 <div id="tournamentSetup" style="display: none;">
+                    <button class="btn-quickmatch" onclick="openQuickTourneyModal()" style="width: 100%; margin-bottom: 12px; padding: 10px; font-size: 0.85rem;">⚡ Turnierschnellmodus (Quick Tournament)</button>
+                    
                     <div class="setup-row">
                         <div class="setup-box">
                             <label>Turnier Wertung/Format</label>
@@ -1045,12 +1080,13 @@
                 { id: 1, name: "Spieler 1", nickname: "StormRider", birthdate: "1998-05-12", motto: "Full Speed voraus!", deck: [{ blade: "Wizard Rod", ratchet: "5-60", bit: "Ball" }, { blade: "Dran Sword", ratchet: "3-60", bit: "Flat" }, { blade: "Hell's Scythe", ratchet: "4-60", bit: "Taper" }], wins: 0, losses: 0 },
                 { id: 2, name: "Spieler 2", nickname: "IronWall", birthdate: "2001-08-23", motto: "Unbezwingbar in der Arena!", deck: [{ blade: "Cerberus (Flame/Dark)", ratchet: "5-80", bit: "Wall Ball (WB)" }, { blade: "Knight Shield", ratchet: "3-80", bit: "Needle" }, { blade: "Viper Tail", ratchet: "5-80", bit: "Orb" }], wins: 0, losses: 0 }
             ],
+            quickTourneyPlayers: [],
             nextPlayerId: 3, editingPlayerId: null, matchNumber: 1,
             matchEvents: [], rawReportTexts: [], actionHistory: [],
             scores: { 1: 0, 2: 0, 3: 0 }, sets: { 1: 0, 2: 0, 3: 0 },
             activeComboObj1: null, activeComboObj2: null, activeComboObj3: null,
             activeBlade1: "", activeBlade2: "", activeBlade3: "",
-            currentMatchArena: "", isMultiplayerActive: false, isQuickMatch: false,
+            currentMatchArena: "", isMultiplayerActive: false, isQuickMatch: false, isQuickTourney: false,
             downloadedFileCounters: {}, audioCtx: null, pendingAction: null, isNewMatchSetup: false,
             globalStats: { spins: 0, bursts: 0, overs: 0, xtremes: 0, bladeWins: {}, ratchetWins: {}, bitWins: {}, arenaCount: {} },
             matchActiveState: false,
@@ -1132,6 +1168,7 @@
             try {
                 let s = JSON.parse(saved);
                 Object.assign(appState, s);
+                if (!appState.quickTourneyPlayers) appState.quickTourneyPlayers = [];
                 appState.players.forEach(p => {
                     if (p.wins === undefined) p.wins = 0;
                     if (p.losses === undefined) p.losses = 0;
@@ -1237,6 +1274,7 @@
 
         function startQuickMatchDirectly() {
             appState.isQuickMatch = true;
+            appState.isQuickTourney = false;
             document.getElementById('singleMatchSetup').style.display = 'block';
             document.getElementById('tournamentSetup').style.display = 'none';
             document.getElementById('leagueSetup').style.display = 'none';
@@ -1250,6 +1288,59 @@
             p3C.innerHTML = '<label>Spieler 3 Name</label><input type="text" id="quickName3" value="Kämpfer 3">';
 
             startNewMatch();
+        }
+
+        /* TURNIER SCHNELLMODUS LOGIK */
+        function openQuickTourneyModal() {
+            renderQuickTourneyNameInputs();
+            document.getElementById('modal-quick-tournament').style.display = 'flex';
+        }
+
+        function closeQuickTourneyModal() {
+            document.getElementById('modal-quick-tournament').style.display = 'none';
+        }
+
+        function renderQuickTourneyNameInputs() {
+            let count = parseInt(document.getElementById('quickTourneyPlayerCount').value) || 4;
+            if (count < 2) count = 2;
+            if (count > 32) count = 32;
+
+            let container = document.getElementById('quickTourneyNamesContainer');
+            if (!container) return;
+
+            let html = '';
+            for (let i = 1; i <= count; i++) {
+                let existingInput = document.getElementById(`qtNameInput_${i}`);
+                let val = existingInput ? existingInput.value : `Blader ${i}`;
+                html += `<div style="display: flex; gap: 6px; align-items: center;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); width: 22px;">#${i}</span>
+                    <input type="text" id="qtNameInput_${i}" value="${val}" placeholder="Blader ${i}" style="background: #1e293b; border: 1px solid var(--border-color); color: var(--text); padding: 5px 8px; border-radius: 4px; font-size: 0.85rem; width: 100%;">
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function confirmStartQuickTournament() {
+            let count = parseInt(document.getElementById('quickTourneyPlayerCount').value) || 4;
+            if (count < 2) return alert("Mindestens 2 Spieler erforderlich.");
+            
+            let format = document.getElementById('quickTourneyFormat').value;
+            let targetScore = document.getElementById('quickTourneyTargetScore').value;
+
+            document.getElementById('tournamentMatchFormat').value = format;
+            document.getElementById('tournamentTargetScore').value = targetScore;
+
+            appState.isQuickTourney = true;
+            appState.quickTourneyPlayers = [];
+            for (let i = 1; i <= count; i++) {
+                let nameInput = document.getElementById(`qtNameInput_${i}`);
+                let customName = nameInput ? nameInput.value.trim() : "";
+                let playerName = customName !== "" ? customName : `Blader ${i}`;
+                appState.quickTourneyPlayers.push({ id: 9000 + i, name: playerName });
+            }
+
+            closeQuickTourneyModal();
+            generateTournamentBracket(true);
         }
 
         const formatCombo = (c) => c ? [c.blade, c.ratchet, c.bit].filter(p => p && p.trim()).join(" ") || "Standard Combo" : "Standard Combo";
@@ -1738,11 +1829,24 @@
             reader.readAsText(file);
         }
 
-        function generateTournamentBracket() {
-            if (appState.players.length < 2) return alert("Mindestens 2 Spieler nötig.");
-            let byeSet = new Set(Array.from(document.querySelectorAll('.bye-chk:checked')).map(chk => parseInt(chk.value)));
-            let byePlayers = appState.players.filter(p => byeSet.has(p.id));
-            let regularPlayers = [...appState.players.filter(p => !byeSet.has(p.id))].sort(() => Math.random() - 0.5);
+        function getTournamentPlayerPool() {
+            return appState.isQuickTourney ? appState.quickTourneyPlayers : appState.players;
+        }
+
+        function generateTournamentBracket(isQuick = false) {
+            let pool = isQuick ? appState.quickTourneyPlayers : appState.players;
+            if (pool.length < 2) return alert("Mindestens 2 Spieler nötig.");
+
+            let byePlayers = [];
+            let regularPlayers = [];
+
+            if (isQuick) {
+                regularPlayers = [...pool].sort(() => Math.random() - 0.5);
+            } else {
+                let byeSet = new Set(Array.from(document.querySelectorAll('.bye-chk:checked')).map(chk => parseInt(chk.value)));
+                byePlayers = pool.filter(p => byeSet.has(p.id));
+                regularPlayers = [...pool.filter(p => !byeSet.has(p.id))].sort(() => Math.random() - 0.5);
+            }
 
             appState.tournamentActive = true;
             document.getElementById('tournamentControls').style.display = 'none';
@@ -1769,7 +1873,7 @@
                     if (lastGroup.length >= 3) {
                         round1.push({ p1Id: lastGroup[0], p2Id: lastGroup[1], p3Id: lastGroup[2], winnerId: null });
                     } else if (lastGroup.length > 0) {
-                        byePlayers.push(...lastGroup.map(id => appState.players.find(p => p.id === id)));
+                        byePlayers.push(...lastGroup.map(id => pool.find(p => p.id === id)));
                     }
                 }
                 byePlayers.forEach(bp => round1.push({ p1Id: bp.id, p2Id: null, p3Id: null, winnerId: bp.id }));
@@ -1818,16 +1922,17 @@
                 container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 10px;">Turnierbaum ist ausgeblendet.</div>`;
                 return;
             }
+            let pool = getTournamentPlayerPool();
             let roundNames = ["Achtelfinale", "Viertelfinale", "Halbfinale", "Finale"];
             container.innerHTML = `<div class="bracket-container">` + appState.tournamentRounds.map((rounds, rIdx) => {
                 let name = roundNames[roundNames.length - appState.tournamentRounds.length + rIdx] || `Runde ${rIdx + 1}`;
                 if (appState.tournamentRounds.length === 1) name = "Finale";
                 return `<div class="bracket-round-box"><div class="bracket-round-title">${name}</div>` + rounds.map((m, mIdx) => {
-                    let p1 = appState.players.find(p => p.id === m.p1Id), p2 = appState.players.find(p => p.id === m.p2Id), p3 = appState.isMultiplayerActive ? appState.players.find(p => p.id === m.p3Id) : null;
+                    let p1 = pool.find(p => p.id === m.p1Id), p2 = pool.find(p => p.id === m.p2Id), p3 = appState.isMultiplayerActive ? pool.find(p => p.id === m.p3Id) : null;
                     let matchupText = appState.isMultiplayerActive ? `${p1 ? p1.name : "TBD"} vs ${p2 ? p2.name : "TBD"} vs ${p3 ? p3.name : "TBD"}` : `${p1 ? p1.name : "TBD"} vs ${p2 ? p2.name : "TBD"}`;
                     let readyCondition = appState.isMultiplayerActive ? (m.p1Id !== null && m.p2Id !== null && m.p3Id !== null) : (m.p1Id !== null && m.p2Id !== null);
-                    let action = m.winnerId !== null && (m.p1Id === null || m.p2Id === null || (appState.isMultiplayerActive && m.p3Id === null)) ? `<span style="color: var(--accent-green); font-size: 0.75rem;">Freilos: ${appState.players.find(p => p.id === m.winnerId)?.name || ""}</span>` :
-                                 m.winnerId !== null ? `<span style="color: var(--accent-green); font-size: 0.75rem;">Sieger: ${appState.players.find(p => p.id === m.winnerId)?.name || ""}</span>` :
+                    let action = m.winnerId !== null && (m.p1Id === null || m.p2Id === null || (appState.isMultiplayerActive && m.p3Id === null)) ? `<span style="color: var(--accent-green); font-size: 0.75rem;">Freilos: ${pool.find(p => p.id === m.winnerId)?.name || ""}</span>` :
+                                 m.winnerId !== null ? `<span style="color: var(--accent-green); font-size: 0.75rem;">Sieger: ${pool.find(p => p.id === m.winnerId)?.name || ""}</span>` :
                                  readyCondition ? `<button class="btn-play-bracket btn-green" onclick="startTournamentMatch(${rIdx}, ${mIdx})">Spielen</button>` : `<span style="color: var(--text-muted); font-size: 0.75rem;">Warte auf Gegner</span>`;
                     return `<div class="bracket-match"><div class="bracket-match-info">${matchupText}</div><div>${action}</div></div>`;
                 }).join('') + `</div>`;
@@ -1843,7 +1948,7 @@
 
         function cancelActiveTournament() {
             if (confirm("Turnier wirklich abbrechen?")) {
-                Object.assign(appState, { tournamentActive: false, tournamentRounds: [], activeTournamentMatchCoords: null, bracketVisible: true });
+                Object.assign(appState, { tournamentActive: false, isQuickTourney: false, quickTourneyPlayers: [], tournamentRounds: [], activeTournamentMatchCoords: null, bracketVisible: true });
                 document.getElementById('gameModeSelect').disabled = false;
                 document.getElementById('tournamentControls').style.display = 'block';
                 document.getElementById('tournamentActiveControls').style.display = 'none';
@@ -1857,15 +1962,36 @@
         function startTournamentMatch(roundIdx, matchIdx) {
             appState.activeTournamentMatchCoords = { roundIdx, matchIdx };
             let m = appState.tournamentRounds[roundIdx][matchIdx];
-            document.getElementById('gameModeSelect').value = 'single';
-            toggleGameMode();
-            document.getElementById('matchPlayer1').value = m.p1Id;
-            document.getElementById('matchPlayer2').value = m.p2Id;
-            if (appState.isMultiplayerActive) {
-                document.getElementById('matchPlayer3').value = m.p3Id;
-                document.getElementById('player3SetupCol').style.display = 'block';
+            let pool = getTournamentPlayerPool();
+            
+            if (appState.isQuickTourney) {
+                appState.isQuickMatch = true;
+                document.getElementById('gameModeSelect').value = 'single';
+                toggleGameMode();
+                let p1 = pool.find(p => p.id === m.p1Id);
+                let p2 = pool.find(p => p.id === m.p2Id);
+                let p3 = appState.isMultiplayerActive ? pool.find(p => p.id === m.p3Id) : null;
+
+                let p1C = document.getElementById('p1Container');
+                let p2C = document.getElementById('p2Container');
+                let p3C = document.getElementById('player3SetupCol');
+
+                p1C.innerHTML = `<label>Spieler 1 Name</label><input type="text" id="quickName1" value="${p1 ? p1.name : 'Blader 1'}">`;
+                p2C.innerHTML = `<label>Spieler 2 Name</label><input type="text" id="quickName2" value="${p2 ? p2.name : 'Blader 2'}">`;
+                p3C.innerHTML = `<label>Spieler 3 Name</label><input type="text" id="quickName3" value="${p3 ? p3.name : 'Blader 3'}">`;
+
+                startNewMatch();
+            } else {
+                document.getElementById('gameModeSelect').value = 'single';
+                toggleGameMode();
+                document.getElementById('matchPlayer1').value = m.p1Id;
+                document.getElementById('matchPlayer2').value = m.p2Id;
+                if (appState.isMultiplayerActive) {
+                    document.getElementById('matchPlayer3').value = m.p3Id;
+                    document.getElementById('player3SetupCol').style.display = 'block';
+                }
+                startNewMatch();
             }
-            startNewMatch();
         }
 
         function openBladeModal(isRoundStart = false) {
@@ -2150,6 +2276,14 @@
             stopMatchAudio();
             let winnerName = document.getElementById(`labelName${winnerNum}`).innerText;
             let winnerId = null;
+
+            if (appState.tournamentActive && appState.activeTournamentMatchCoords !== null) {
+                let pool = getTournamentPlayerPool();
+                let { roundIdx, matchIdx } = appState.activeTournamentMatchCoords;
+                let m = appState.tournamentRounds[roundIdx][matchIdx];
+                let matchedP = pool.find(p => p.name === winnerName);
+                winnerId = matchedP ? matchedP.id : (winnerNum === 1 ? m.p1Id : m.p2Id);
+            }
 
             if (!appState.isQuickMatch) {
                 let p1El = document.getElementById('matchPlayer1');
